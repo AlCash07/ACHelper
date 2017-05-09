@@ -16,7 +16,7 @@ public class MainFrame extends JFrame {
 
     private JMenuItem newContest;
     private JMenuItem newProblem;
-    private JMenuItem refreshWorkspace;
+    private JMenuItem saveWorkspace;
     private JMenuItem switchWorkspace;
     private JMenuItem clearWorkspace;
     private JMenuItem exitApp;
@@ -69,9 +69,9 @@ public class MainFrame extends JFrame {
         newContest = new JMenuItem();
         newProblem = new JMenuItem();
         JMenu workspaceMenu = new JMenu();
-        refreshWorkspace = new JMenuItem();
-        switchWorkspace = new JMenuItem();
+        saveWorkspace = new JMenuItem();
         clearWorkspace = new JMenuItem();
+        switchWorkspace = new JMenuItem();
         JMenu systemMenu = new JMenu();
         exitApp = new JMenuItem();
 
@@ -89,9 +89,13 @@ public class MainFrame extends JFrame {
 
         workspaceMenu.setText("Workspace");
 
-        refreshWorkspace.setText("Refresh");
-        refreshWorkspace.addActionListener(event -> refreshWorkspace());
-        workspaceMenu.add(refreshWorkspace);
+        saveWorkspace.setText("Save changes");
+        saveWorkspace.addActionListener(event -> refreshWorkspace());
+        workspaceMenu.add(saveWorkspace);
+
+        clearWorkspace.setText("Delete problems");
+        clearWorkspace.addActionListener(event -> clearTestFolders());
+        workspaceMenu.add(clearWorkspace);
 
         switchWorkspace.setText("Switch");
         switchWorkspace.addActionListener(event -> {
@@ -101,10 +105,6 @@ public class MainFrame extends JFrame {
             }
         });
         workspaceMenu.add(switchWorkspace);
-
-        clearWorkspace.setText("Clear");
-        clearWorkspace.addActionListener(event -> clearTestFolders());
-        workspaceMenu.add(clearWorkspace);
 
         menuBar.add(workspaceMenu);
 
@@ -122,9 +122,9 @@ public class MainFrame extends JFrame {
     private void setupShortcuts() {
         newContest.setAccelerator(Configuration.getShortcut("new contest"));
         newProblem.setAccelerator(Configuration.getShortcut("new problem"));
-        refreshWorkspace.setAccelerator(Configuration.getShortcut("refresh workspace"));
-        switchWorkspace.setAccelerator(Configuration.getShortcut("switch workspace"));
-        clearWorkspace.setAccelerator(Configuration.getShortcut("clear workspace"));
+        saveWorkspace.setAccelerator(Configuration.getShortcut("workspace save changes"));
+        clearWorkspace.setAccelerator(Configuration.getShortcut("workspace delete problems"));
+        switchWorkspace.setAccelerator(Configuration.getShortcut("workspace switch"));
         exitApp.setAccelerator(Configuration.getShortcut("exit"));
     }
 

@@ -8,12 +8,12 @@ import java.util.ArrayList;
 /**
  * Created by oleksandr.bacherikov on 5/9/17.
  */
-public class TestTableModel extends AbstractTableModel {
+public class TestsTableModel extends AbstractTableModel {
     ArrayList<TestCase> testCases;
     final String[] columnNames = {"Input", "Expected output", "Program output", "Result"};
     final Class[] columnClasses = {String.class, String.class, String.class, String.class};
 
-    public TestTableModel(ArrayList<TestCase> testCases) {
+    public TestsTableModel(ArrayList<TestCase> testCases) {
         this.testCases = testCases;
     }
 

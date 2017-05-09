@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class ProblemSetPane extends JTabbedPane {
     String workspaceDirectory = System.getProperty("user.dir");
 
-    ArrayList<Problem> problems;
+    ArrayList<Problem> problems = new ArrayList<>();
 
     public ProblemSetPane() {
         setFont(new Font("Tahoma", Font.BOLD, 13));
@@ -25,20 +25,18 @@ public class ProblemSetPane extends JTabbedPane {
         setPreferredSize(new Dimension(640, 480));
         createPopupMenu();
         setupShortcuts();
-
-        problems = new ArrayList<>();
     }
 
     private void createPopupMenu() {
         // adds popup menu to tabs with options to close or delete a problem
         final JPopupMenu singleTabPopupMenu = new JPopupMenu();
-        JMenuItem closeProblem = new JMenuItem("Close");
+        JMenuItem closeProblem = new JMenuItem("Close problem");
         closeProblem.addActionListener(event -> {
             problems.remove(getSelectedIndex());
             remove(getSelectedComponent());
         });
         singleTabPopupMenu.add(closeProblem);
-        JMenuItem deleteProblem = new JMenuItem("Delete");
+        JMenuItem deleteProblem = new JMenuItem("Delete problem");
         deleteProblem.addActionListener(event -> {
             // problems[getSelectedIndex()].
             closeProblem.dispatchEvent(event);
@@ -90,24 +88,21 @@ public class ProblemSetPane extends JTabbedPane {
                 return;
             }
         }
-//        ProblemJPanel panel = new ProblemJPanel(problem, tabbedPane, this);
-//        // as recommended here: http://stackoverflow.com/questions/476678/tabs-with-equal-constant-width-in-jtabbedpane
-//        tabbedPane.addTab("<html><body><table width='150'>" + problem.getProblemId() + "</table></body></html>", panel);
-//        tabbedPane.setSelectedComponent(panel);
+        ProblemPanel panel = new ProblemPanel(newProblem);
+        // as recommended here: http://stackoverflow.com/questions/476678/tabs-with-equal-constant-width-in-jtabbedpane
+        addTab(newProblem.getProblemId(), panel);
+        setSelectedComponent(panel);
     }
 
     public void addContest(ArrayList<Problem> problems) {
         if (problems == null || problems.isEmpty()) {
             return;
         }
-        Component firstProblem = null;
+        int firstProblemIndex = getTabCount();
         for (Problem problem : problems) {
             addProblem(problem);
-            if (firstProblem == null) {
-                firstProblem = getComponentAt(getTabCount() - 1);
-            }
         }
-        setSelectedComponent(firstProblem);
+        setSelectedIndex(firstProblemIndex);
     }
 
 

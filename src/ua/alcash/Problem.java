@@ -1,8 +1,8 @@
 package ua.alcash;
 
+import net.egork.chelper.task.StreamConfiguration;
 import net.egork.chelper.task.Task;
 import net.egork.chelper.task.TestType;
-import net.egork.chelper.task.StreamConfiguration;
 import ua.alcash.util.ParseManager;
 
 import java.util.ArrayList;
@@ -16,16 +16,16 @@ public class Problem {
     String platformName;
     String contestName;
 
-    StreamConfiguration input;
-    StreamConfiguration output;
+    String inputFile;
+    String outputFile;
 
     TestType testType;
     double timeLimit = Double.parseDouble(Configuration.get("default time limit"));
     ArrayList<TestCase> testCases = new ArrayList<>();
 
-    boolean isInteractive = false;
+    boolean interactive = false;
     boolean customChecker = false;
-    String checkerPreprocessorDirectives = Configuration.get("checker default preprocessor directives");
+    String checkerParams = Configuration.get("checker default preprocessor directives");
 
     String directory;
 
@@ -35,40 +35,39 @@ public class Problem {
         this.platformName = platformName;
         this.contestName = contestName;
 
-        this.input = StreamConfiguration.STANDARD;
-        this.output = StreamConfiguration.STANDARD;
+        inputFile = "";
+        outputFile = "";
 
-        this.testType = TestType.SINGLE;
+        testType = TestType.SINGLE;
 
-        this.setDirectory();
+        setDirectory();
     }
 
     public Problem(String platformName, Task task) {
-        this.problemId = task.taskClass;
-        if (this.problemId.startsWith("Task")) {
-            this.problemId = this.problemId.substring(4);
+        problemId = task.taskClass;
+        if (problemId.startsWith("Task")) {
+            problemId = problemId.substring(4);
         }
-        this.problemName = task.name;
+        problemName = task.name;
         this.platformName = platformName;
-        this.contestName = task.contestName;
+        contestName = task.contestName;
 
-        this.input = task.input;
-        this.output = task.output;
-        // this condition holds only for GCJ and FHC
-        if (this.input.type == StreamConfiguration.StreamType.LOCAL_REGEXP) {
-            // use standard files, because the program is executed only locally
-            this.input = StreamConfiguration.STANDARD;
-            this.output = StreamConfiguration.STANDARD;
+        // for GCJ and FHC ignore the file name, because the program is executed only locally
+        if (task.input.type != StreamConfiguration.StreamType.LOCAL_REGEXP) {
+            inputFile = task.input.fileName;
+            outputFile = task.input.fileName;
         }
+        if (inputFile == null) inputFile = "";
+        if (outputFile == null) outputFile = "";
 
-        this.testType = task.testType;
+        testType = task.testType;
 
         String testName = Configuration.get("test sample");
         for (int i = 0; i < task.tests.length; ++i) {
-            this.testCases.add(new TestCase(testName + (i + 1), task.tests[i].input, task.tests[i].output));
+            testCases.add(new TestCase(testName + (i + 1), task.tests[i].input, task.tests[i].output));
         }
 
-        this.setDirectory();
+        setDirectory();
     }
 
     private void setDirectory() {
@@ -76,58 +75,90 @@ public class Problem {
         for (int i = 1; i < tokens.length; i += 2) {
             switch (tokens[i]) {
                 case "platform_name":
-                    tokens[i] = this.platformName;
+                    tokens[i] = platformName;
                     break;
                 case "platform_id":
-                    tokens[i] = ParseManager.getPlatformId(this.platformName);
+                    tokens[i] = ParseManager.getPlatformId(platformName);
                     break;
                 case "problem_id":
-                    tokens[i] = this.problemId;
+                    tokens[i] = problemId;
                     break;
                 case "problem_name":
-                    tokens[i] = this.problemName;
+                    tokens[i] = problemName;
                     break;
                 default:
                     tokens[i] = Configuration.get(tokens[i]);
             }
         }
-        this.directory = String.join("", tokens);
+        directory = String.join("", tokens);
     }
 
-    public String getProblemId() {
-        return this.problemId;
-    }
+    public String getProblemId() { return problemId; }
 
-    public String getProblemName() {
-        return this.problemName;
-    }
+    public String getProblemName() { return problemName; }
 
-    public String getContestName() {
-        return this.contestName;
-    }
+    public String getContestName() { return contestName; }
 
     public String getFullName() {
-        String name = (this.problemName != null && !this.problemName.isEmpty()) ? this.problemName : this.problemId;
-        return this.contestName + " " + name;
+        String name = (problemName != null && !problemName.isEmpty()) ? problemName : problemId;
+        return contestName + " " + name;
     }
 
-    public void addTestCase(TestCase testCase) {
-        testCases.add(testCase);
+    public TestType getTestType() { return testType; }
+    public void setTestType(TestType value) { testType = value; }
+
+    public double getTimeLimit() { return timeLimit; }
+    public void setTimeLimit(double value) { timeLimit = value; }
+
+    public String getInputFile() { return inputFile; }
+    public void setInputFile(String value) { inputFile = value; }
+
+    public String getOutputFile() { return outputFile; }
+    public void setOutputFile(String value) { outputFile = value; }
+
+    public boolean getInteractive() { return interactive; }
+    public void setInteractive(boolean value) { interactive = value; }
+
+    public boolean getCustomChecker() { return customChecker; }
+    public void setCustomChecker(boolean value) { customChecker = value; }
+
+    public String getCheckerParams() { return checkerParams; }
+    public void setCheckerParams(String value) { checkerParams = value; }
+
+    public TestCase getTestCase(int index) { return testCases.get(index); }
+
+    public void addTestCase(TestCase testCase) { testCases.add(testCase); }
+
+    public void deleteTestCase(int index) { testCases.remove(index); }
+
+    public ArrayList<TestCase> getTestCaseSet() { return testCases; }
+
+    public String getDirectory() { return directory; }
+
+/*
+    private void saveTests() {
+        ArrayList<TestCase> tests = problem.getTestCaseSet();
+        PrintWriter writer;
+        int testIndex = 1;
+        String problemDirectory = new File("problem dir").getParent() + java.io.File.separator;
+        for (TestCase test : tests) {
+            try {
+                writer = new PrintWriter(problemDirectory + testIndex + ".in", "UTF-8");
+                writer.println(test.getInput());
+                writer.close();
+
+                writer = new PrintWriter(problemDirectory + testIndex + ".out", "UTF-8");
+                writer.println(test.getExpectedOutput());
+                writer.close();
+            } catch (FileNotFoundException | UnsupportedEncodingException ex) {
+                JOptionPane.showMessageDialog(this, "Error while saving inputs/outputs.\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+//                Logger.getLogger(ProblemJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            testIndex++;
+        }
+        JOptionPane.showMessageDialog(this, "Inputs and outputs saved succesfully.", "Tests saved", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public TestCase getTestCase(int index) {
-        return testCases.get(index);
-    }
-
-    public void deleteTestCase(int index) {
-        testCases.remove(index);
-    }
-
-    public ArrayList<TestCase> getTestCaseSet() {
-        return testCases;
-    }
-
-    public String getDirectory() {
-        return this.directory;
-    }
+    */
 }

@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
  * Created by oleksandr.bacherikov on 5/9/17.
  */
 public class NewProblemDialog extends JDialog {
+    private JPanel rootPanel;
     private JComboBox platformComboBox;
     private JTextField contestNameField;
     private JTextField problemIdField;
@@ -24,7 +25,6 @@ public class NewProblemDialog extends JDialog {
     private JButton parseButton;
     private JButton abortParsingButton;
     private JButton createProblemButton;
-    private JPanel rootPanel;
 
     Problem problem;
 
