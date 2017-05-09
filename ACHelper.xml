@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>ACHelper configuration file</comment>
+
+    <entry key="platform atcoder">AtCoder</entry>
+    <entry key="platform bayan">Bayan</entry>
+    <entry key="platform codechef">CodeChef</entry>
+    <entry key="platform codeforces">Codeforces</entry>
+    <entry key="platform csacademy">CS Academy</entry>
+    <entry key="platform facebook">Facebook Hacker Cup</entry>
+    <entry key="platform gcj">Google Code Jam</entry>
+    <entry key="platform hackerearth">HackerEarth</entry>
+    <entry key="platform hackerrank">HackerRank</entry>
+    <entry key="platform kattis">Kattis</entry>
+    <entry key="platform rcc">Russian Code Cup</entry>
+    <entry key="platform timus">Timus</entry>
+    <entry key="platform usaco">USACO</entry>
+    <entry key="platform yandex">Yandex Algorithm</entry>
+
+    <entry key="shortcut new contest">ctrl C</entry>
+    <entry key="shortcut new problem">ctrl P</entry>
+    <entry key="shortcut refresh workspace">ctrl R</entry>
+    <entry key="shortcut switch workspace">ctrl W</entry>
+    <entry key="shortcut clean workspace">ctrl F</entry>
+    <entry key="shortcut new test case">ctrl T</entry>
+    <entry key="shortcut edit test case">ctrl E</entry>
+    <entry key="shortcut exit">ctrl Q</entry>
+
+    <entry key="CHelper port">4243</entry>
+
+    <entry key="problem directory">%problem_id%</entry>
+    <entry key="default time limit">2</entry>
+    <entry key="checker default preprocessor directives">EPS=1e-9 ABS REL</entry>
+
+    <entry key="test sample">sample</entry>
+    <entry key="test manual">manual</entry>
+    <entry key="test list file">tests</entry>
+    <entry key="test maximum displayed length">10000</entry>
+
+    <entry key="extension input">in</entry>
+    <entry key="extension expected output">ans</entry>
+    <entry key="extension program output">out</entry>
+
+    <entry key="CMakeLists template path">templates/CMakeLists.txt</entry>
+    <entry key="CMake directory">build</entry>
+</properties>
