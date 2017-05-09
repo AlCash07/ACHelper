@@ -3,6 +3,7 @@ package ua.alcash.ui;
 import net.egork.chelper.task.TestType;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
+import ua.alcash.TestCase;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -36,7 +37,7 @@ public class ProblemPanel extends JPanel {
     private JButton deleteButton;
 
     private JTable testsTable;
-    private TestsTableModel testsTableModel;  // used to notify testsTable about the testcaseSet changes
+    private TestsTableModel testsTableModel;  // used to notify testsTable about the testCaseSet changes
 
     private Problem problem;
 
@@ -46,7 +47,8 @@ public class ProblemPanel extends JPanel {
 
         this.problem = problem;
         problemName.setText(problem.getFullName());
-        timeLimitSpinner.setModel(new SpinnerNumberModel(problem.getTimeLimit(), 0, 9999, 1));
+        timeLimitSpinner.setModel(new SpinnerNumberModel(
+                problem.getTimeLimit(), 0, 9999, 1));
         testTypeComboBox.setModel(new DefaultComboBoxModel<>(new String[]{
                 TestType.SINGLE.toString(),
                 TestType.MULTI_NUMBER.toString(),
@@ -64,17 +66,14 @@ public class ProblemPanel extends JPanel {
         testsTable.setModel(testsTableModel);
         testsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        ListSelectionListener listSelectionListener = new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                boolean enable = !(testsTable.getSelectionModel().isSelectionEmpty());
-                editButton.setEnabled(enable);
-                solvedButton.setEnabled(enable);
-                skipButton.setEnabled(enable);
-                upButton.setEnabled(enable && getSelectedIndex() > 0);
-                downButton.setEnabled(enable && getSelectedIndex() < testsTableModel.getRowCount() - 1);
-                deleteButton.setEnabled(enable);
-            }
+        ListSelectionListener listSelectionListener = event -> {
+            boolean enable = !(testsTable.getSelectionModel().isSelectionEmpty());
+            editButton.setEnabled(enable);
+            solvedButton.setEnabled(enable);
+            skipButton.setEnabled(enable);
+            upButton.setEnabled(enable && getSelectedIndex() > 0);
+            downButton.setEnabled(enable && getSelectedIndex() < testsTableModel.getRowCount() - 1);
+            deleteButton.setEnabled(enable);
         };
         testsTable.getSelectionModel().addListSelectionListener(listSelectionListener);
 
@@ -88,8 +87,11 @@ public class ProblemPanel extends JPanel {
 
         newButton.addActionListener(event -> newTestCase());
         editButton.addActionListener(event -> editTestCase());
+        solvedButton.addActionListener(event -> solvedTestCase());
+        skipButton.addActionListener(event -> skipTestCase());
+        upButton.addActionListener(event -> swapTestCases(getSelectedIndex() - 1));
+        downButton.addActionListener(event -> swapTestCases(getSelectedIndex() + 1));
         deleteButton.addActionListener(event -> deleteTestCase());
-
         setupShortcuts();
     }
 
@@ -129,19 +131,19 @@ public class ProblemPanel extends JPanel {
     }
 
     private void newTestCase() {
-//        TestCase newTestcase = new TestCase("manual");
-//        TestcaseJDialog dialog = new TestcaseJDialog(parentWindow, newTestcase);
+//        TestCase newTestCase = new TestCase(problem.getNextTestName());
+//        TestCaseJDialog dialog = new TestCaseJDialog(parentWindow, newTestCase);
 //        dialog.setVisible(true); // this is modal; it will block until window is closed
 //        if (dialog.getReturnValue()) {
-//            // we need to add the newTestcase
-//            problem.addTestCase(newTestcase);
+//            // we need to add the newTestCase
+//            problem.addTestCase(newTestCase);
 //            testsTableModel.rowInserted();
 //        }
     }
 
     private void editTestCase() {
-//        TestCase editedTestcase = problem.getTestCase(selectedRow);
-//        TestcaseJDialog dialog = new TestcaseJDialog(parentWindow, editedTestcase);
+//        TestCase editedTestCase = problem.getTestCase(selectedRow);
+//        TestCaseJDialog dialog = new TestCaseJDialog(parentWindow, editedTestCase);
 //        dialog.setVisible(true); // this is modal; it will block until window is closed
 //        if (dialog.getReturnValue()) {
 //            // the test case was edited
@@ -149,17 +151,33 @@ public class ProblemPanel extends JPanel {
 //        }
     }
 
+    private void solvedTestCase() {
+        int index = getSelectedIndex();
+        problem.getTestCase(index).flipSolved();
+        testsTableModel.rowUpdated(index);
+    }
+
+    private void skipTestCase() {
+        int index = getSelectedIndex();
+        problem.getTestCase(index).flipSkipped();
+        testsTableModel.rowUpdated(index);
+    }
+
+    private void swapTestCases(int swapIndex) {
+        int index = getSelectedIndex();
+        problem.swapTestCases(index, swapIndex);
+        testsTable.setRowSelectionInterval(swapIndex, swapIndex);
+        testsTableModel.rowUpdated(index);
+        testsTableModel.rowUpdated(swapIndex);
+    }
+
     private void deleteTestCase() {
-        int selectedRow = testsTable.getSelectedRow();
-        if (selectedRow == -1) {
-            throw new UnsupportedOperationException("Implementation error: delete button clicked, but no row selected");
+        int index = getSelectedIndex();
+        int confirmed = JOptionPane.showConfirmDialog(this,
+                "Are you sure?", "Confirm delete", JOptionPane.YES_NO_OPTION);
+        if (confirmed == JOptionPane.YES_OPTION) {
+            problem.deleteTestCase(index);
+            testsTableModel.rowDeleted(index);
         }
-//        int confirmed = JOptionPane.showConfirmDialog(this, "Are you sure?", "Confirm delete", JOptionPane.YES_NO_OPTION);
-//
-//        if (confirmed == JOptionPane.YES_OPTION) {
-//            problem.deleteTestCase(selectedRow);
-//            testsTableModel.rowDeleted(selectedRow);
-//            copyInputButton.setEnabled(false);
-//        }
     }
 }

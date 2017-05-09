@@ -89,7 +89,6 @@ public class ProblemSetPane extends JTabbedPane {
             }
         }
         ProblemPanel panel = new ProblemPanel(newProblem);
-        // as recommended here: http://stackoverflow.com/questions/476678/tabs-with-equal-constant-width-in-jtabbedpane
         addTab(newProblem.getProblemId(), panel);
         setSelectedComponent(panel);
     }

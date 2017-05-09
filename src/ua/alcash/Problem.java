@@ -6,6 +6,7 @@ import net.egork.chelper.task.TestType;
 import ua.alcash.util.ParseManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by oleksandr.bacherikov on 5/8/17.
@@ -22,10 +23,11 @@ public class Problem {
     TestType testType;
     double timeLimit = Double.parseDouble(Configuration.get("default time limit"));
     ArrayList<TestCase> testCases = new ArrayList<>();
+    int manualTestIndex = 1;
 
     boolean interactive = false;
     boolean customChecker = false;
-    String checkerParams = Configuration.get("checker default preprocessor directives");
+    String checkerParams = Configuration.get("default checker preprocessor directives");
 
     String directory;
 
@@ -71,6 +73,9 @@ public class Problem {
     }
 
     private void setDirectory() {
+        if (Configuration.get("test sample") == Configuration.get("test manual")) {
+            manualTestIndex = testCases.size() + 1;
+        }
         String[] tokens = Configuration.get("problem directory").split("%");
         for (int i = 1; i < tokens.length; i += 2) {
             switch (tokens[i]) {
@@ -125,9 +130,19 @@ public class Problem {
     public String getCheckerParams() { return checkerParams; }
     public void setCheckerParams(String value) { checkerParams = value; }
 
+    public String getNextTestName() { return Configuration.get("test manual") + manualTestIndex; }
+
     public TestCase getTestCase(int index) { return testCases.get(index); }
 
-    public void addTestCase(TestCase testCase) { testCases.add(testCase); }
+    public void addTestCase(TestCase testCase) {
+        testCases.add(testCase);
+        // while exists test with name == getNextTestName()
+            ++manualTestIndex;
+    }
+
+    public void swapTestCases(int index1, int index2) {
+        Collections.swap(testCases, index1, index2);
+    }
 
     public void deleteTestCase(int index) { testCases.remove(index); }
 

@@ -32,7 +32,7 @@
 
     <entry key="problem directory">%problem_id%</entry>
     <entry key="default time limit">2</entry>
-    <entry key="checker default preprocessor directives">EPS=1e-9 ABS REL</entry>
+    <entry key="default checker preprocessor directives">EPS=1e-9 ABS REL</entry>
 
     <entry key="test sample">sample</entry>
     <entry key="test manual">manual</entry>
