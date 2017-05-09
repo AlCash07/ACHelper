@@ -54,9 +54,9 @@ public class Problem {
 
         this.input = task.input;
         this.output = task.output;
-        // This condition holds only for GCJ and FHC, where the program is executed locally.
-        // This case doesn't require special treatment.
+        // this condition holds only for GCJ and FHC
         if (this.input.type == StreamConfiguration.StreamType.LOCAL_REGEXP) {
+            // use standard files, because the program is executed only locally
             this.input = StreamConfiguration.STANDARD;
             this.output = StreamConfiguration.STANDARD;
         }

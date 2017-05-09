@@ -34,7 +34,7 @@ public class Configuration {
         boolean ok = true;
         try {
             FileInputStream input = new FileInputStream(
-                workspaceDirectory + java.io.File.separator + CONFIGURATION_FILE_NAME);
+                    workspaceDirectory + java.io.File.separator + CONFIGURATION_FILE_NAME);
             properties.loadFromXML(input);
         } catch (IOException exception) {
             ok = false;

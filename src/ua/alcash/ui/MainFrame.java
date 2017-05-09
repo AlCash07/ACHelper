@@ -33,10 +33,11 @@ public class MainFrame extends JFrame {
     public MainFrame() throws InstantiationException {
         if (!Configuration.load(workspaceDirectory)) {
             JOptionPane.showMessageDialog(this,
-                "Current directory doesn't contain configuration file " + Configuration.CONFIGURATION_FILE_NAME
-                    + "\nPlease, select another directory.",
-                Configuration.PROJECT_NAME,
-                JOptionPane.WARNING_MESSAGE);
+                    "Current directory doesn't contain configuration file "
+                            + Configuration.CONFIGURATION_FILE_NAME
+                            + "\nPlease, select another directory.",
+                    Configuration.PROJECT_NAME,
+                    JOptionPane.WARNING_MESSAGE);
             while (true) {
                 SelectionResult result = selectWorkspace();
                 if (result == SelectionResult.CANCEL) {
@@ -86,25 +87,11 @@ public class MainFrame extends JFrame {
         newMenu.setText("New...");
 
         newContest.setText("Contest");
-        newContest.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-//                NewContestDialog contestDialog = new NewContestDialog(this);
-//                contestDialog.setVisible(true);  // this is modal; it will block until the window is closed
-//                addProblems(contestDialog.getProblemList());
-            }
-        });
+        newContest.addActionListener(event -> getNewContest());
         newMenu.add(newContest);
 
         newProblem.setText("Problem");
-        newProblem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-//                NewProblemDialog problemDialog = new NewProblemDialog(this);
-//                problemDialog.setVisible(true);  // this is modal; it will block until the window is closed
-//                if (problemDialog.getProblem() != null) {  // a problem has been created
-//                    addTabForProblem(problemDialog.getProblem());
-//                }
-            }
-        });
+        newProblem.addActionListener(event -> getNewProblem());
         newMenu.add(newProblem);
 
         menuBar.add(newMenu);
@@ -112,30 +99,20 @@ public class MainFrame extends JFrame {
         workspaceMenu.setText("Workspace");
 
         refreshWorkspace.setText("Refresh");
-        refreshWorkspace.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                refreshWorkspace();
-            }
-        });
+        refreshWorkspace.addActionListener(event -> refreshWorkspace());
         workspaceMenu.add(refreshWorkspace);
 
         switchWorkspace.setText("Switch");
-        switchWorkspace.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                if (selectWorkspace() == SelectionResult.SUCCESS) {
-                    ParseManager.initialize();
-                    setupShortcuts();
-                }
+        switchWorkspace.addActionListener(event -> {
+            if (selectWorkspace() == SelectionResult.SUCCESS) {
+                ParseManager.initialize();
+                setupShortcuts();
             }
         });
         workspaceMenu.add(switchWorkspace);
 
         clearWorkspace.setText("Clear");
-        clearWorkspace.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                clearTestFolders();
-            }
-        });
+        clearWorkspace.addActionListener(event -> clearTestFolders());
         workspaceMenu.add(clearWorkspace);
 
         menuBar.add(workspaceMenu);
@@ -143,11 +120,7 @@ public class MainFrame extends JFrame {
         systemMenu.setText("System");
 
         exitApp.setText("Exit");
-        exitApp.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                confirmAndExit();
-            }
-        });
+        exitApp.addActionListener(event -> confirmAndExit());
         systemMenu.add(exitApp);
 
         menuBar.add(systemMenu);
@@ -156,15 +129,10 @@ public class MainFrame extends JFrame {
     }
 
     private void createPopupMenu() {
-        // adds popup menu to tabs with option to delete a tab
+        // adds popup menu to tabs with options to close and delete a problem
         final JPopupMenu singleTabJPopupMenu = new JPopupMenu();
         JMenuItem deleteJMenuItem = new JMenuItem("Delete");
-        deleteJMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                tabbedPane.remove(tabbedPane.getSelectedComponent());
-            }
-        });
+        deleteJMenuItem.addActionListener(event -> tabbedPane.remove(tabbedPane.getSelectedComponent()));
         singleTabJPopupMenu.add(deleteJMenuItem);
         tabbedPane.addMouseListener(new MouseAdapter() {
             @Override
@@ -197,7 +165,7 @@ public class MainFrame extends JFrame {
 
         for (int index = 1; index <= 9; index++) {
             tabbedPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke("alt " + index), "switch tab " + index);
+                    KeyStroke.getKeyStroke("alt " + index), "switch tab " + index);
             tabbedPane.getActionMap().put("switch tab " + index, new AbstractActionWithInteger(index) {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -206,6 +174,20 @@ public class MainFrame extends JFrame {
                     }
                 }
             });
+        }
+    }
+
+    private void getNewContest() {
+//        NewContestDialog contestDialog = new NewContestDialog(this);
+//        contestDialog.setVisible(true);  // this is modal; it will block until the window is closed
+//        addProblems(contestDialog.getProblemList());
+    }
+
+    private void getNewProblem() {
+        NewProblemDialog problemDialog = new NewProblemDialog(this);
+        problemDialog.setVisible(true);
+        if (problemDialog.getProblem() != null) {
+            addTabForProblem(problemDialog.getProblem());
         }
     }
 
@@ -242,10 +224,10 @@ public class MainFrame extends JFrame {
             String directory = fileChooser.getSelectedFile().getAbsolutePath();
             if (!Configuration.load(directory)) {
                 JOptionPane.showMessageDialog(this,
-                    "Selected directory doesn't contain configuration file "
-                        + Configuration.CONFIGURATION_FILE_NAME,
-                    Configuration.PROJECT_NAME,
-                    JOptionPane.WARNING_MESSAGE);
+                        "Selected directory doesn't contain configuration file "
+                            + Configuration.CONFIGURATION_FILE_NAME,
+                        Configuration.PROJECT_NAME,
+                        JOptionPane.WARNING_MESSAGE);
                 return SelectionResult.FAIL;
             }
             workspaceDirectory = directory;
@@ -259,9 +241,9 @@ public class MainFrame extends JFrame {
 
     private void confirmAndExit() {
         int confirm = JOptionPane.showConfirmDialog(this,
-            "Clear workspace before exiting?",
-            "Confirm exit",
-            JOptionPane.YES_NO_CANCEL_OPTION);
+                "Clear workspace before exiting?",
+                "Confirm exit",
+                JOptionPane.YES_NO_CANCEL_OPTION);
         if (confirm != JOptionPane.CANCEL_OPTION) {
             if (confirm == JOptionPane.YES_OPTION) {
                 clearTestFolders();
@@ -272,24 +254,10 @@ public class MainFrame extends JFrame {
     }
 
     public static void main(String args[]) {
-        // We set the look and feel for Swing
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            // UIManager.put("TabbedPane.tabInsets", new Insets(5,20,6,20));
-        } catch (Exception exception) {
-            // We fall back to Metal
+            new MainFrame().setVisible(true);
+        } catch (InstantiationException exception) {
+            System.exit(0);
         }
-
-        // And we let the application run
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new MainFrame().setVisible(true);
-                } catch (InstantiationException exception) {
-                    System.exit(0);
-                }
-            }
-        });
     }
 }

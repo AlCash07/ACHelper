@@ -3,10 +3,11 @@ package ua.alcash.util;
 import net.egork.chelper.parser.*;
 import net.egork.chelper.task.Task;
 import net.egork.chelper.util.FileUtilities;
-import org.jetbrains.annotations.Nullable;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
 
+import javax.xml.parsers.ParserConfigurationException;
+import java.net.MalformedURLException;
 import java.util.*;
 
 /**
@@ -37,7 +38,7 @@ public class ParseManager {
         PLATFORM_ID_TO_PARSER = Collections.unmodifiableMap(platforms);
 
         ALL_CONTEST_PLATFORMS = new HashSet<>(Arrays.asList(
-            "codechef", "codeforces", "gcj", "kattis", "rcc", "timus"));
+                "codechef", "codeforces", "gcj", "kattis", "rcc", "timus"));
     }
 
     public static void initialize() {
@@ -72,13 +73,16 @@ public class ParseManager {
         return platformNames;
     }
 
-    @Nullable
-    public static Problem parseProblem(String platformName, String url) {
+    public static Problem parseProblem(String platformName, String url)
+            throws MalformedURLException, ParserConfigurationException {
         Parser parser = PLATFORM_ID_TO_PARSER.get(platformNameToId.get(platformName));
         String problemText = FileUtilities.getWebPageContent(url);
+        if (problemText == null) {
+            throw new MalformedURLException();
+        }
         Collection<Task> tasks = parser.parseTaskFromHTML(problemText);
         if (tasks.isEmpty()) {
-            return null;
+            throw new ParserConfigurationException();
         }
         return new Problem(platformName, tasks.iterator().next());
     }
