@@ -153,7 +153,9 @@
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <text value="http://codeforces.com/problemset/problem/484/E"/>
+        </properties>
       </component>
     </children>
   </grid>

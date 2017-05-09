@@ -62,7 +62,7 @@ public class NewProblemDialog extends JDialog {
     private void setupShortcuts() {
         // escape key will close the dialog
         getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(
-            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
         getRootPane().getActionMap().put("close", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent event) {
@@ -92,7 +92,7 @@ public class NewProblemDialog extends JDialog {
     }
 
     private String getPlatformName() {
-        return (String)platformComboBox.getItemAt(platformComboBox.getSelectedIndex());
+        return (String) platformComboBox.getItemAt(platformComboBox.getSelectedIndex());
     }
 
     private void createProblem() {
@@ -141,19 +141,19 @@ public class NewProblemDialog extends JDialog {
         }
     }
 
-    BackgroundProblemParser parser;
+    BackgroundProblemParser problemParser;
 
     private void startParsing() {
         createProblemButton.setEnabled(false);
         parseButton.setEnabled(false);
         parseButton.setText("Parsing...");
         abortParsingButton.setEnabled(true);
-        parser = new BackgroundProblemParser(this, urlField.getText());
-        parser.execute();
+        problemParser = new BackgroundProblemParser(this, urlField.getText());
+        problemParser.execute();
     }
 
     private void abortParsing() {
-        parser.cancel(true);
+        problemParser.cancel(true);
     }
 
     private void restoreButtonStateAfterParsing() {
