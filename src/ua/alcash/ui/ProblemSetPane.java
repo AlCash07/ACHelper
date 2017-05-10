@@ -16,11 +16,14 @@ import java.util.ArrayList;
  * Created by oleksandr.bacherikov on 5/9/17.
  */
 public class ProblemSetPane extends JTabbedPane {
+    private Frame parentFrame;
+
     String workspaceDirectory = System.getProperty("user.dir");
 
-    ArrayList<Problem> problems = new ArrayList<>();
+    private ArrayList<Problem> problems = new ArrayList<>();
 
-    public ProblemSetPane() {
+    public ProblemSetPane(Frame parentFrame) {
+        this.parentFrame = parentFrame;
         setFont(new Font("Tahoma", Font.BOLD, 13));
         setTabLayoutPolicy(SCROLL_TAB_LAYOUT);
         setTabPlacement(LEFT);
@@ -33,10 +36,10 @@ public class ProblemSetPane extends JTabbedPane {
         // adds popup menu to tabs with options to close or delete a problem
         final JPopupMenu singleTabPopupMenu = new JPopupMenu();
         JMenuItem closeProblem = new JMenuItem("Close problem");
-        closeProblem.addActionListener(event -> closeProblem(false));
+        closeProblem.addActionListener(event -> closeProblem(getSelectedIndex(), false));
         singleTabPopupMenu.add(closeProblem);
         JMenuItem deleteProblem = new JMenuItem("Delete problem");
-        deleteProblem.addActionListener(event -> closeProblem(true));
+        deleteProblem.addActionListener(event -> closeProblem(getSelectedIndex(), true));
         singleTabPopupMenu.add(deleteProblem);
 
         addMouseListener(new MouseAdapter() {
@@ -85,7 +88,7 @@ public class ProblemSetPane extends JTabbedPane {
             }
         }
         problems.add(newProblem);
-        ProblemPanel panel = new ProblemPanel(newProblem);
+        ProblemPanel panel = new ProblemPanel(parentFrame, newProblem);
         addTab(newProblem.getProblemId(), panel);
         setSelectedComponent(panel);
         writeProblemToDisk(newProblem);
@@ -122,8 +125,7 @@ public class ProblemSetPane extends JTabbedPane {
         }
     }
 
-    private void closeProblem(boolean delete) {
-        int index = getSelectedIndex();
+    private void closeProblem(int index, boolean delete) {
         if (delete) {
             try {
                 problems.get(index).deleteFromDisk(workspaceDirectory);
@@ -135,6 +137,10 @@ public class ProblemSetPane extends JTabbedPane {
             }
         }
         problems.remove(index);
-        remove(getSelectedComponent());
+        removeTabAt(index);
+    }
+
+    public void deleteAllProblems() {
+        while (!problems.isEmpty()) closeProblem(0, true);
     }
 }

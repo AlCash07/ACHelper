@@ -1,5 +1,7 @@
 package ua.alcash.ui;
 
+import ua.alcash.Configuration;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellRenderer;
@@ -13,7 +15,6 @@ import java.util.List;
  */
 public class MultilineTableCellRenderer extends JTextArea implements TableCellRenderer {
     private List<List<Integer>> rowColHeight = new ArrayList<>();
-    private static final int MAX_LENGTH = 150;
 
     public MultilineTableCellRenderer() {
         setLineWrap(true);
@@ -21,11 +22,12 @@ public class MultilineTableCellRenderer extends JTextArea implements TableCellRe
         setOpaque(true);
     }
 
-    protected String shortener(String str) {
-        if (str.length() <= MAX_LENGTH) {
+    protected String shorten(String str) {
+        int maxLength = Integer.parseInt(Configuration.get("test maximum displayed length"));
+        if (str.length() <= maxLength) {
             return str;
         } else {
-            return str.substring(0, MAX_LENGTH - 3) + "...";
+            return str.substring(0, maxLength - 3) + "...";
         }
     }
 
@@ -51,7 +53,7 @@ public class MultilineTableCellRenderer extends JTextArea implements TableCellRe
             setBorder(new EmptyBorder(1, 2, 1, 2));
         }
         if (value != null) {
-            setText(shortener(value.toString()));
+            setText(shorten(value.toString()));
         } else {
             setText("");
         }

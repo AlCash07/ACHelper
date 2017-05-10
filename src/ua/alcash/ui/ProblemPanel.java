@@ -3,6 +3,7 @@ package ua.alcash.ui;
 import net.egork.chelper.task.TestType;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
+import ua.alcash.TestCase;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -15,6 +16,7 @@ import java.awt.event.MouseEvent;
  * Created by oleksandr.bacherikov on 5/9/17.
  */
 public class ProblemPanel extends JPanel {
+    private Frame parentFrame;
     private JPanel rootPanel;
     private JLabel problemName;
     private JSpinner timeLimitSpinner;
@@ -39,7 +41,8 @@ public class ProblemPanel extends JPanel {
 
     private Problem problem;
 
-    public ProblemPanel(Problem problem) {
+    public ProblemPanel(Frame parentFrame, Problem problem) {
+        this.parentFrame = parentFrame;
         setLayout(new GridLayout(1, 1));
         add(rootPanel);
 
@@ -121,32 +124,31 @@ public class ProblemPanel extends JPanel {
     }
 
     private int getSelectedIndex() throws UnsupportedOperationException {
-        int selectedRow = testsTable.getSelectedRow();
-        if (selectedRow == -1) {
+        int index = testsTable.getSelectedRow();
+        if (index == -1) {
             throw new UnsupportedOperationException("No row selected to perform an action");
         }
-        return selectedRow;
+        return index;
     }
 
     private void newTestCase() {
-//        TestCase newTestCase = new TestCase(problem.getNextTestName());
-//        TestCaseJDialog dialog = new TestCaseJDialog(parentWindow, newTestCase);
-//        dialog.setVisible(true); // this is modal; it will block until window is closed
-//        if (dialog.getReturnValue()) {
-//            // we need to add the newTestCase
-//            problem.addTestCase(newTestCase);
-//            testsTableModel.rowInserted();
-//        }
+        TestCase newTestCase = new TestCase(problem.getNextTestName());
+        TestCaseDialog dialog = new TestCaseDialog(parentFrame, newTestCase);
+        dialog.setVisible(true);
+        if (dialog.saved) {
+            problem.addTestCase(newTestCase);
+            testsTableModel.rowInserted();
+        }
     }
 
     private void editTestCase() {
-//        TestCase editedTestCase = problem.getTestCase(selectedRow);
-//        TestCaseJDialog dialog = new TestCaseJDialog(parentWindow, editedTestCase);
-//        dialog.setVisible(true); // this is modal; it will block until window is closed
-//        if (dialog.getReturnValue()) {
-//            // the test case was edited
-//            testsTableModel.rowUpdated(selectedRow);
-//        }
+        int index = getSelectedIndex();
+        TestCase editedTestCase = problem.getTestCase(index);
+        TestCaseDialog dialog = new TestCaseDialog(parentFrame, editedTestCase);
+        dialog.setVisible(true);
+        if (dialog.saved) {
+            testsTableModel.rowUpdated(index);
+        }
     }
 
     private void solvedTestCase() {

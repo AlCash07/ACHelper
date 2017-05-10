@@ -1,5 +1,6 @@
 package ua.alcash.ui;
 
+import com.sun.codemodel.internal.JOp;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
 import ua.alcash.util.ParseManager;
@@ -22,7 +23,7 @@ public class MainFrame extends JFrame {
     private JMenuItem exitApp;
 
     public MainFrame() throws InstantiationException {
-        problemsPane = new ProblemSetPane();
+        problemsPane = new ProblemSetPane(this);
         if (!Configuration.load(problemsPane.workspaceDirectory)) {
             JOptionPane.showMessageDialog(this,
                     "Current directory doesn't contain configuration file "
@@ -94,7 +95,15 @@ public class MainFrame extends JFrame {
         workspaceMenu.add(saveWorkspace);
 
         clearWorkspace.setText("Delete problems");
-        clearWorkspace.addActionListener(event -> clearTestFolders());
+        clearWorkspace.addActionListener(event -> {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Are you sure you want to delete all problem folders on disk?",
+                    Configuration.PROJECT_NAME,
+                    JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                problemsPane.deleteAllProblems();
+            }
+        });
         workspaceMenu.add(clearWorkspace);
 
         switchWorkspace.setText("Switch");
@@ -159,22 +168,20 @@ public class MainFrame extends JFrame {
                 return SelectionResult.FAIL;
             }
             problemsPane.workspaceDirectory = directory;
+            problemsPane.removeAll();
             return SelectionResult.SUCCESS;
         }
         return SelectionResult.CANCEL;
     }
 
-    private void clearTestFolders() {
-    }
-
     private void confirmAndExit() {
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Clear workspace before exiting?",
-                "Confirm exit",
+                Configuration.PROJECT_NAME,
                 JOptionPane.YES_NO_CANCEL_OPTION);
         if (confirm != JOptionPane.CANCEL_OPTION) {
             if (confirm == JOptionPane.YES_OPTION) {
-                clearTestFolders();
+                problemsPane.deleteAllProblems();
             }
             dispose();
             System.exit(0);

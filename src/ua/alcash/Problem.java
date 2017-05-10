@@ -13,6 +13,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -30,6 +32,7 @@ public class Problem {
     TestType testType;
     double timeLimit = Double.parseDouble(Configuration.get("default time limit"));
     ArrayList<TestCase> testCases = new ArrayList<>();
+    Set<String> testCaseNames = new HashSet<>();
     int manualTestIndex = 1;
 
     boolean interactive = false;
@@ -73,6 +76,7 @@ public class Problem {
 
         String testName = Configuration.get("test sample");
         for (int i = 0; i < task.tests.length; ++i) {
+            testCaseNames.add(testName + (i + 1));
             testCases.add(new TestCase(testName + (i + 1), task.tests[i].input, task.tests[i].output));
         }
 
@@ -137,21 +141,29 @@ public class Problem {
     public String getCheckerParams() { return checkerParams; }
     public void setCheckerParams(String value) { checkerParams = value; }
 
-    public String getNextTestName() { return Configuration.get("test manual") + manualTestIndex; }
+    public String getNextTestName() {
+        String testName = Configuration.get("test manual");
+        while (testCaseNames.contains(testName + manualTestIndex)) {
+            ++manualTestIndex;
+        }
+        return testName + manualTestIndex;
+    }
 
     public TestCase getTestCase(int index) { return testCases.get(index); }
 
     public void addTestCase(TestCase testCase) {
         testCases.add(testCase);
-        // while exists test with name == getNextTestName()
-            ++manualTestIndex;
+        testCaseNames.add(testCase.getName());
     }
 
     public void swapTestCases(int index1, int index2) {
         Collections.swap(testCases, index1, index2);
     }
 
-    public void deleteTestCase(int index) { testCases.remove(index); }
+    public void deleteTestCase(int index) {
+        testCaseNames.remove(testCases.get(index).getName());
+        testCases.remove(index);
+    }
 
     public ArrayList<TestCase> getTestCaseSet() { return testCases; }
 

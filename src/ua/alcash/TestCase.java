@@ -45,9 +45,7 @@ public class TestCase {
         modifiedInput = true;
     }
 
-    public String getExpectedOutput() {
-        return solved ? programOutput : expectedOutput;
-    }
+    public String getExpectedOutput() { return solved ? programOutput : expectedOutput; }
 
     public void setExpectedOutput(String value) {
         expectedOutput = value;
@@ -71,6 +69,8 @@ public class TestCase {
 //    public void setExecutionResults(String value) { executionResults = value.split(" ", 3); }
 
     public void flipSkipped() { skipped = !skipped; }
+
+    public boolean getSolved() { return solved; }
 
     public void flipSolved() { solved = !solved; }
 
