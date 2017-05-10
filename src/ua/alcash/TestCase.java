@@ -1,5 +1,13 @@
 package ua.alcash;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+
 /**
  * Created by oleksandr.bacherikov on 5/8/17.
  */
@@ -24,7 +32,11 @@ public class TestCase {
         this.name = name;
         this.input = input;
         this.expectedOutput = output;
+        modifiedInput = true;
+        modifiedOutput = true;
     }
+
+    public String getName() { return name; }
 
     public String getInput() { return input; }
 
@@ -61,4 +73,26 @@ public class TestCase {
     public void flipSkipped() { skipped = !skipped; }
 
     public void flipSolved() { solved = !solved; }
+
+    public void writeToDisk(String problemPath) throws IOException {
+        Charset utf8 = StandardCharsets.UTF_8;
+        if (modifiedInput) {
+            Path inputFile = Paths.get(problemPath, name + "." + Configuration.getExtension("input"));
+            Files.write(inputFile, Arrays.asList(input), utf8);
+            modifiedInput = false;
+        }
+        Path answerFile = Paths.get(problemPath, name + "." + Configuration.getExtension("expected output"));
+        Path outputFile = Paths.get(problemPath, name + "." + Configuration.getExtension("program output"));
+        if (!Files.exists(outputFile)) {
+            Files.createFile(outputFile);
+        }
+        if (solved) {
+            Files.copy(outputFile, answerFile);
+            solved = false;
+        } else if (modifiedOutput) {
+            Files.write(answerFile, Arrays.asList(expectedOutput), utf8);
+        }
+        modifiedOutput = false;
+        skipped = false;
+    }
 }

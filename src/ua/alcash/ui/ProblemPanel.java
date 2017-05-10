@@ -3,10 +3,8 @@ package ua.alcash.ui;
 import net.egork.chelper.task.TestType;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
-import ua.alcash.TestCase;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -179,5 +177,15 @@ public class ProblemPanel extends JPanel {
             problem.deleteTestCase(index);
             testsTableModel.rowDeleted(index);
         }
+    }
+
+    public void updateProblemFromInterface() {
+        problem.setTimeLimit((double)timeLimitSpinner.getValue());
+        problem.setInputFile(inputFileField.getText());
+        problem.setOutputFile(outputFileField.getText());
+        problem.setTestType(TestType.values()[testTypeComboBox.getSelectedIndex()]);
+        problem.setInteractive(interactiveCheckBox.isSelected());
+        problem.setCustomChecker(customCheckerCheckBox.isSelected());
+        problem.setCheckerParams(checkerParamsField.getText());
     }
 }

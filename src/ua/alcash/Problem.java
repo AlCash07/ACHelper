@@ -1,12 +1,19 @@
 package ua.alcash;
 
+import com.google.common.collect.Lists;
 import net.egork.chelper.task.StreamConfiguration;
 import net.egork.chelper.task.Task;
 import net.egork.chelper.task.TestType;
 import ua.alcash.util.ParseManager;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.stream.Stream;
 
 /**
  * Created by oleksandr.bacherikov on 5/8/17.
@@ -150,30 +157,41 @@ public class Problem {
 
     public String getDirectory() { return directory; }
 
-/*
-    private void saveTests() {
-        ArrayList<TestCase> tests = problem.getTestCaseSet();
-        PrintWriter writer;
-        int testIndex = 1;
-        String problemDirectory = new File("problem dir").getParent() + java.io.File.separator;
-        for (TestCase test : tests) {
-            try {
-                writer = new PrintWriter(problemDirectory + testIndex + ".in", "UTF-8");
-                writer.println(test.getInput());
-                writer.close();
-
-                writer = new PrintWriter(problemDirectory + testIndex + ".out", "UTF-8");
-                writer.println(test.getExpectedOutput());
-                writer.close();
-            } catch (FileNotFoundException | UnsupportedEncodingException ex) {
-                JOptionPane.showMessageDialog(this, "Error while saving inputs/outputs.\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-//                Logger.getLogger(ProblemJPanel.class.getName()).log(Level.SEVERE, null, ex);
+    public void writeToDisk(String workspaceDirectory) throws IOException {
+        Charset utf8 = StandardCharsets.UTF_8;
+        Path problemPath = Paths.get(workspaceDirectory, directory);
+        Files.createDirectories(problemPath);
+        Path testListFile = Paths.get(problemPath.toString(), Configuration.get("test list file"));
+        if (Files.exists(testListFile)) {
+            Stream<String> lines = Files.lines(testListFile, utf8);
+            if (lines.anyMatch(line -> {
+                String[] tokens = line.split(" ");
+                return tokens.length > 1 && (tokens[1] == "RUNNING" || tokens[1] == "PENDING");
+            })) {
+                throw new IOException("Cannot write tests to disk while testing is in progress.");
             }
-            testIndex++;
         }
-        JOptionPane.showMessageDialog(this, "Inputs and outputs saved succesfully.", "Tests saved", JOptionPane.INFORMATION_MESSAGE);
+        Files.write(testListFile, Lists.transform(testCases,
+                testCase -> String.join(" ", testCase.getName(), testCase.getExecutionResults(" "))),
+                utf8);
+        for (TestCase testCase : testCases) {
+            testCase.writeToDisk(problemPath.toString());
+        }
     }
 
-    */
+    public void deleteFromDisk(String workspaceDirectory) throws IOException {
+        Files.walkFileTree(Paths.get(workspaceDirectory, directory), new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
 }

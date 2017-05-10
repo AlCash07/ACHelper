@@ -1,5 +1,6 @@
 package ua.alcash.ui;
 
+import ua.alcash.Configuration;
 import ua.alcash.Problem;
 import ua.alcash.util.AbstractActionWithInteger;
 
@@ -8,6 +9,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -31,16 +33,10 @@ public class ProblemSetPane extends JTabbedPane {
         // adds popup menu to tabs with options to close or delete a problem
         final JPopupMenu singleTabPopupMenu = new JPopupMenu();
         JMenuItem closeProblem = new JMenuItem("Close problem");
-        closeProblem.addActionListener(event -> {
-            problems.remove(getSelectedIndex());
-            remove(getSelectedComponent());
-        });
+        closeProblem.addActionListener(event -> closeProblem(false));
         singleTabPopupMenu.add(closeProblem);
         JMenuItem deleteProblem = new JMenuItem("Delete problem");
-        deleteProblem.addActionListener(event -> {
-            // problems[getSelectedIndex()].
-            closeProblem.dispatchEvent(event);
-        });
+        deleteProblem.addActionListener(event -> closeProblem(true));
         singleTabPopupMenu.add(deleteProblem);
 
         addMouseListener(new MouseAdapter() {
@@ -88,9 +84,12 @@ public class ProblemSetPane extends JTabbedPane {
                 return;
             }
         }
+        problems.add(newProblem);
         ProblemPanel panel = new ProblemPanel(newProblem);
         addTab(newProblem.getProblemId(), panel);
         setSelectedComponent(panel);
+        writeProblemToDisk(newProblem);
+        // run gerenation script if not adding a contest
     }
 
     public void addContest(ArrayList<Problem> problems) {
@@ -104,5 +103,38 @@ public class ProblemSetPane extends JTabbedPane {
         setSelectedIndex(firstProblemIndex);
     }
 
+    private void writeProblemToDisk(Problem problem) {
+        try {
+            problem.writeToDisk(workspaceDirectory);
+        } catch (IOException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "Writing problem " + problem.getProblemId() + " to disk caused an error:\n"
+                            + exception.getMessage(),
+                    Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
+        }
 
+    }
+
+    public void updateProblemsOnDisk() {
+        for (int i = 0; i < problems.size(); ++i) {
+            ((ProblemPanel)getComponentAt(i)).updateProblemFromInterface();
+            writeProblemToDisk(problems.get(i));
+        }
+    }
+
+    private void closeProblem(boolean delete) {
+        int index = getSelectedIndex();
+        if (delete) {
+            try {
+                problems.get(index).deleteFromDisk(workspaceDirectory);
+            } catch (IOException exception) {
+                JOptionPane.showMessageDialog(this,
+                        "Deleting folder " + problems.get(index).getDirectory() + " caused an error:\n"
+                                + exception.getMessage(),
+                        Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        problems.remove(index);
+        remove(getSelectedComponent());
+    }
 }

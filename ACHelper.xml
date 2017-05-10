@@ -20,7 +20,7 @@
 
     <entry key="shortcut new contest">ctrl C</entry>
     <entry key="shortcut new problem">ctrl P</entry>
-    <entry key="shortcut workspace save changes">ctrl S</entry>
+    <entry key="shortcut workspace save to disk">ctrl S</entry>
     <entry key="shortcut workspace delete problems">ctrl D</entry>
     <entry key="shortcut workspace switch">ctrl W</entry>
     <entry key="shortcut test case new">ctrl T</entry>
@@ -37,12 +37,13 @@
     <entry key="test sample">sample</entry>
     <entry key="test manual">manual</entry>
     <entry key="test list file">tests</entry>
-    <entry key="test maximum displayed length">10000</entry>
+    <entry key="test maximum loaded length">10000</entry>
+    <entry key="test maximum displayed length">100</entry>
 
     <entry key="extension input">in</entry>
     <entry key="extension expected output">ans</entry>
     <entry key="extension program output">out</entry>
 
-    <entry key="CMakeLists template path">templates/CMakeLists.txt</entry>
-    <entry key="CMake directory">build</entry>
+    <entry key="configuration template path">templates/CMakeLists.txt</entry>
+    <entry key="generator command">mkdir build; cd build; cmake -G Xcode ..</entry>
 </properties>

@@ -89,8 +89,8 @@ public class MainFrame extends JFrame {
 
         workspaceMenu.setText("Workspace");
 
-        saveWorkspace.setText("Save changes");
-        saveWorkspace.addActionListener(event -> refreshWorkspace());
+        saveWorkspace.setText("Save to disk");
+        saveWorkspace.addActionListener(event -> problemsPane.updateProblemsOnDisk());
         workspaceMenu.add(saveWorkspace);
 
         clearWorkspace.setText("Delete problems");
@@ -122,7 +122,7 @@ public class MainFrame extends JFrame {
     private void setupShortcuts() {
         newContest.setAccelerator(Configuration.getShortcut("new contest"));
         newProblem.setAccelerator(Configuration.getShortcut("new problem"));
-        saveWorkspace.setAccelerator(Configuration.getShortcut("workspace save changes"));
+        saveWorkspace.setAccelerator(Configuration.getShortcut("workspace save to disk"));
         clearWorkspace.setAccelerator(Configuration.getShortcut("workspace delete problems"));
         switchWorkspace.setAccelerator(Configuration.getShortcut("workspace switch"));
         exitApp.setAccelerator(Configuration.getShortcut("exit"));
@@ -141,9 +141,6 @@ public class MainFrame extends JFrame {
         if (problem != null) {
             problemsPane.addProblem(problemDialog.getProblem());
         }
-    }
-
-    private void refreshWorkspace() {
     }
 
     private enum SelectionResult {SUCCESS, FAIL, CANCEL}
