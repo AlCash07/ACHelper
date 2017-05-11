@@ -41,7 +41,7 @@ public class ParseManager {
                 "codechef", "codeforces", "gcj", "kattis", "rcc", "timus"));
     }
 
-    public static void initialize() {
+    public static void configure() {
         platformNameToId.clear();
         PLATFORM_ID_TO_PARSER.entrySet().forEach((entry) -> {
             String platformName = Configuration.getPlatform(entry.getKey());

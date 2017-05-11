@@ -32,6 +32,10 @@ public class ProblemSetPane extends JTabbedPane {
         setupShortcuts();
     }
 
+    public static void configure() {
+        ProblemPanel.configure();
+    }
+
     private void createPopupMenu() {
         // adds popup menu to tabs with options to close or delete a problem
         final JPopupMenu singleTabPopupMenu = new JPopupMenu();
@@ -82,8 +86,9 @@ public class ProblemSetPane extends JTabbedPane {
         for (Problem problem : problems) {
             if (problem.getDirectory() == newProblem.getDirectory()) {
                 JOptionPane.showMessageDialog(this,
-                        "Problem with such directory already exists:\n" + newProblem.getDirectory(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                        "Problem with such directory already exists: " + newProblem.getDirectory(),
+                        Configuration.PROJECT_NAME,
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
@@ -111,9 +116,10 @@ public class ProblemSetPane extends JTabbedPane {
             problem.writeToDisk(workspaceDirectory);
         } catch (IOException exception) {
             JOptionPane.showMessageDialog(this,
-                    "Writing problem " + problem.getProblemId() + " to disk caused an error:\n"
+                    "Writing folder " + problem.getDirectory() + " to disk caused an error:\n"
                             + exception.getMessage(),
-                    Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
+                    Configuration.PROJECT_NAME,
+                    JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -133,7 +139,8 @@ public class ProblemSetPane extends JTabbedPane {
                 JOptionPane.showMessageDialog(this,
                         "Deleting folder " + problems.get(index).getDirectory() + " caused an error:\n"
                                 + exception.getMessage(),
-                        Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
+                        Configuration.PROJECT_NAME,
+                        JOptionPane.ERROR_MESSAGE);
             }
         }
         problems.remove(index);

@@ -1,6 +1,5 @@
 package ua.alcash.ui;
 
-import com.sun.codemodel.internal.JOp;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
 import ua.alcash.util.ParseManager;
@@ -50,9 +49,7 @@ public class MainFrame extends JFrame {
         });
         setContentPane(problemsPane);
         createMainMenu();
-        setupShortcuts();
-
-        ParseManager.initialize();
+        configure();
 
         // set system proxy if there is one
         try {
@@ -62,6 +59,12 @@ public class MainFrame extends JFrame {
 
         pack();
         setLocationRelativeTo(null);
+    }
+
+    public void configure() {
+        ParseManager.configure();
+        ProblemSetPane.configure();
+        setupShortcuts();
     }
 
     private void createMainMenu() {
@@ -108,10 +111,8 @@ public class MainFrame extends JFrame {
 
         switchWorkspace.setText("Switch");
         switchWorkspace.addActionListener(event -> {
-            if (selectWorkspace() == SelectionResult.SUCCESS) {
-                ParseManager.initialize();
-                setupShortcuts();
-            }
+            if (selectWorkspace() == SelectionResult.SUCCESS)
+                configure();
         });
         workspaceMenu.add(switchWorkspace);
 

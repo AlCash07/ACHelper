@@ -21,6 +21,20 @@ import java.util.stream.Stream;
  * Created by oleksandr.bacherikov on 5/8/17.
  */
 public class Problem {
+    private static double defaultTimeLimit;
+    private static String defaultCheckerParams;
+    private static String sampleTestName;
+    private static String manualTestName;
+    private static String testListFileName;
+
+    static public void configure() {
+        defaultTimeLimit = Double.parseDouble(Configuration.get("default time limit"));
+        defaultCheckerParams = Configuration.get("default checker preprocessor directives");
+        sampleTestName = Configuration.get("test sample");
+        manualTestName = Configuration.get("test manual");
+        testListFileName = Configuration.get("test list file");
+    }
+
     String problemId;
     String problemName;
     String platformName;
@@ -30,14 +44,14 @@ public class Problem {
     String outputFile;
 
     TestType testType;
-    double timeLimit = Double.parseDouble(Configuration.get("default time limit"));
+    double timeLimit = defaultTimeLimit;
     ArrayList<TestCase> testCases = new ArrayList<>();
     Set<String> testCaseNames = new HashSet<>();
     int manualTestIndex = 1;
 
     boolean interactive = false;
     boolean customChecker = false;
-    String checkerParams = Configuration.get("default checker preprocessor directives");
+    String checkerParams = defaultCheckerParams;
 
     String directory;
 
@@ -74,19 +88,16 @@ public class Problem {
 
         testType = task.testType;
 
-        String testName = Configuration.get("test sample");
         for (int i = 0; i < task.tests.length; ++i) {
-            testCaseNames.add(testName + (i + 1));
-            testCases.add(new TestCase(testName + (i + 1), task.tests[i].input, task.tests[i].output));
+            String testName = sampleTestName + (i + 1);
+            testCaseNames.add(testName);
+            testCases.add(new TestCase(testName, task.tests[i].input, task.tests[i].output));
         }
 
         setDirectory();
     }
 
     private void setDirectory() {
-        if (Configuration.get("test sample") == Configuration.get("test manual")) {
-            manualTestIndex = testCases.size() + 1;
-        }
         String[] tokens = Configuration.get("problem directory").split("%");
         for (int i = 1; i < tokens.length; i += 2) {
             switch (tokens[i]) {
@@ -142,11 +153,10 @@ public class Problem {
     public void setCheckerParams(String value) { checkerParams = value; }
 
     public String getNextTestName() {
-        String testName = Configuration.get("test manual");
-        while (testCaseNames.contains(testName + manualTestIndex)) {
+        while (testCaseNames.contains(manualTestName + manualTestIndex)) {
             ++manualTestIndex;
         }
-        return testName + manualTestIndex;
+        return manualTestName + manualTestIndex;
     }
 
     public TestCase getTestCase(int index) { return testCases.get(index); }
@@ -173,7 +183,7 @@ public class Problem {
         Charset utf8 = StandardCharsets.UTF_8;
         Path problemPath = Paths.get(workspaceDirectory, directory);
         Files.createDirectories(problemPath);
-        Path testListFile = Paths.get(problemPath.toString(), Configuration.get("test list file"));
+        Path testListFile = Paths.get(problemPath.toString(), testListFileName);
         if (Files.exists(testListFile)) {
             Stream<String> lines = Files.lines(testListFile, utf8);
             if (lines.anyMatch(line -> {

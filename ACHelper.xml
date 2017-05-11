@@ -40,6 +40,7 @@
     <entry key="test list file">tests</entry>
     <entry key="test maximum loaded length">10000</entry>
     <entry key="test maximum displayed length">100</entry>
+    <entry key="test maximum displayed lines">8</entry>
 
     <entry key="extension input">in</entry>
     <entry key="extension expected output">ans</entry>

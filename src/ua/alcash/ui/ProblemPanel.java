@@ -96,6 +96,11 @@ public class ProblemPanel extends JPanel {
         setupShortcuts();
     }
 
+    public static void configure() {
+        Problem.configure();
+        TestCase.configure();
+    }
+
     private void setupShortcuts() {
         String keyNew = "test case new";
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Configuration.getShortcut(keyNew), keyNew);
@@ -172,6 +177,7 @@ public class ProblemPanel extends JPanel {
     }
 
     private void deleteTestCase() {
+        // add option to delete from disk
         int index = getSelectedIndex();
         int confirmed = JOptionPane.showConfirmDialog(this,
                 "Are you sure?", "Confirm delete", JOptionPane.YES_NO_OPTION);

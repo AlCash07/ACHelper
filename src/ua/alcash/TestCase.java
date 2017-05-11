@@ -12,8 +12,18 @@ import java.util.Arrays;
  * Created by oleksandr.bacherikov on 5/8/17.
  */
 public class TestCase {
-    private static String UNKNOWN_KEY = "UNKNOWN";
-    private static String SKIPPED_KEY = "SKIPPED";
+    private final static String UNKNOWN_KEY = "UNKNOWN";
+    private final static String SKIPPED_KEY = "SKIPPED";
+
+    private static String inputExtension;
+    private static String expectedOutputExtension;
+    private static String programOutputExtension;
+
+    public static void configure() {
+        inputExtension = "." + Configuration.getExtension("input");
+        expectedOutputExtension = "." + Configuration.getExtension("expected output");
+        programOutputExtension = "." + Configuration.getExtension("program output");
+    }
 
     String name;
     String input = "";
@@ -66,7 +76,7 @@ public class TestCase {
         return String.join(delimiter, executionResults);
     }
 
-//    public void setExecutionResults(String value) { executionResults = value.split(" ", 3); }
+    public void setExecutionResults(String value) { executionResults = value.split(" ", 3); }
 
     public void flipSkipped() { skipped = !skipped; }
 
@@ -77,20 +87,20 @@ public class TestCase {
     public void writeToDisk(String problemPath) throws IOException {
         Charset utf8 = StandardCharsets.UTF_8;
         if (modifiedInput) {
-            Path inputFile = Paths.get(problemPath, name + "." + Configuration.getExtension("input"));
+            Path inputFile = Paths.get(problemPath, name + inputExtension);
             Files.write(inputFile, Arrays.asList(input), utf8);
             modifiedInput = false;
         }
-        Path answerFile = Paths.get(problemPath, name + "." + Configuration.getExtension("expected output"));
-        Path outputFile = Paths.get(problemPath, name + "." + Configuration.getExtension("program output"));
-        if (!Files.exists(outputFile)) {
-            Files.createFile(outputFile);
+        Path expectedOutputFile = Paths.get(problemPath, name + expectedOutputExtension);
+        Path programOutputFile = Paths.get(problemPath, name + programOutputExtension);
+        if (!Files.exists(programOutputFile)) {
+            Files.createFile(programOutputFile);
         }
         if (solved) {
-            Files.copy(outputFile, answerFile);
+            Files.copy(programOutputFile, expectedOutputFile);
             solved = false;
         } else if (modifiedOutput) {
-            Files.write(answerFile, Arrays.asList(expectedOutput), utf8);
+            Files.write(expectedOutputFile, Arrays.asList(expectedOutput), utf8);
         }
         modifiedOutput = false;
         skipped = false;
