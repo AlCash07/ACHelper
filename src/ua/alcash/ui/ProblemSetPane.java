@@ -3,6 +3,7 @@ package ua.alcash.ui;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
 import ua.alcash.util.AbstractActionWithInteger;
+import ua.alcash.util.ChromeListener;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,6 +23,8 @@ public class ProblemSetPane extends JTabbedPane {
 
     private ArrayList<Problem> problems = new ArrayList<>();
 
+    ChromeListener chromeListener;
+
     public ProblemSetPane(Frame parentFrame) {
         this.parentFrame = parentFrame;
         setFont(new Font("Tahoma", Font.BOLD, 13));
@@ -32,8 +35,26 @@ public class ProblemSetPane extends JTabbedPane {
         setupShortcuts();
     }
 
-    public static void configure() {
+    public void configure() {
         ProblemPanel.configure();
+
+        String port = Configuration.get("CHelper port");
+        if (chromeListener != null && port == null) {
+            chromeListener.cancel(true);
+            chromeListener = null;
+        }
+        if (port != null && chromeListener == null) {
+            try {
+                chromeListener = new ChromeListener(this, Integer.parseInt(port));
+                chromeListener.execute();
+            } catch (IOException exception) {
+                JOptionPane.showMessageDialog(this,
+                        "Could not create serverSocket for Chrome parser," +
+                                "probably another CHelper-eligible project is running.",
+                        Configuration.PROJECT_NAME,
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     private void createPopupMenu() {
@@ -84,7 +105,7 @@ public class ProblemSetPane extends JTabbedPane {
 
     public void addProblem(Problem newProblem) {
         for (Problem problem : problems) {
-            if (problem.getDirectory() == newProblem.getDirectory()) {
+            if (problem.getDirectory().equals(newProblem.getDirectory())) {
                 JOptionPane.showMessageDialog(this,
                         "Problem with such directory already exists: " + newProblem.getDirectory(),
                         Configuration.PROJECT_NAME,
@@ -121,7 +142,6 @@ public class ProblemSetPane extends JTabbedPane {
                     Configuration.PROJECT_NAME,
                     JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
     public void updateProblemsOnDisk() {

@@ -1,5 +1,6 @@
 package ua.alcash.ui;
 
+import ua.alcash.Configuration;
 import ua.alcash.Problem;
 import ua.alcash.util.ParseManager;
 
@@ -44,8 +45,8 @@ public class NewProblemDialog extends JDialog {
         List<String> platformNames;
         platformNames = ParseManager.getPlatformNames();
         Collections.sort(platformNames);
-        this.platformComboBox.setMaximumRowCount(platformNames.size());
-        this.platformComboBox.setModel(new DefaultComboBoxModel<>(platformNames.toArray(new String[0])));
+        platformComboBox.setMaximumRowCount(platformNames.size());
+        platformComboBox.setModel(new DefaultComboBoxModel<>(platformNames.toArray(new String[0])));
 
         parseButton.addActionListener(event -> startParsing());
         abortParsingButton.addActionListener(event -> abortParsing());
@@ -87,9 +88,7 @@ public class NewProblemDialog extends JDialog {
         });
     }
 
-    public Problem getProblem() {
-        return problem;
-    }
+    public Problem getProblem() { return problem; }
 
     private String getPlatformName() {
         return (String) platformComboBox.getItemAt(platformComboBox.getSelectedIndex());
@@ -100,7 +99,8 @@ public class NewProblemDialog extends JDialog {
         if (problemId.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Problem ID is empty.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                    Configuration.PROJECT_NAME,
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
         problem = new Problem(problemId, problemNameField.getText(), getPlatformName(), contestNameField.getText());
@@ -118,7 +118,8 @@ public class NewProblemDialog extends JDialog {
 
         @Override
         public Problem doInBackground() throws MalformedURLException, ParserConfigurationException {
-            return ParseManager.parseProblem(getPlatformName(), url);
+            String platformId = ParseManager.getPlatformId(dialog.getPlatformName());
+            return ParseManager.parseProblemByUrl(platformId, url);
         }
 
         @Override
@@ -133,7 +134,7 @@ public class NewProblemDialog extends JDialog {
                 } else {
                     message = "Entered URL doesn't match the selected platform.";
                 }
-                JOptionPane.showMessageDialog(dialog, message, "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, message, Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
             } catch (Exception exception) {
             } finally {
                 dialog.restoreButtonStateAfterParsing();

@@ -63,7 +63,7 @@ public class MainFrame extends JFrame {
 
     public void configure() {
         ParseManager.configure();
-        ProblemSetPane.configure();
+        problemsPane.configure();
         setupShortcuts();
     }
 
@@ -158,7 +158,7 @@ public class MainFrame extends JFrame {
     private SelectionResult selectWorkspace() {
         JFileChooser fileChooser = new JFileChooser(problemsPane.workspaceDirectory);
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             String directory = fileChooser.getSelectedFile().getAbsolutePath();
             if (!Configuration.load(directory)) {
                 JOptionPane.showMessageDialog(this,

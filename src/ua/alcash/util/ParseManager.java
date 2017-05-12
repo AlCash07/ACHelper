@@ -3,6 +3,7 @@ package ua.alcash.util;
 import net.egork.chelper.parser.*;
 import net.egork.chelper.task.Task;
 import net.egork.chelper.util.FileUtilities;
+import org.jetbrains.annotations.NotNull;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
 
@@ -17,6 +18,7 @@ public class ParseManager {
     private static final Map<String, Parser> PLATFORM_ID_TO_PARSER;
     private static final Set<String> ALL_CONTEST_PLATFORMS;
 
+    private static Map<String, String> platformIdToName = new HashMap<>();
     private static Map<String, String> platformNameToId = new HashMap<>();
 
     static {
@@ -42,22 +44,24 @@ public class ParseManager {
     }
 
     public static void configure() {
+        platformIdToName.clear();
         platformNameToId.clear();
-        PLATFORM_ID_TO_PARSER.entrySet().forEach((entry) -> {
+        PLATFORM_ID_TO_PARSER.entrySet().forEach(entry -> {
             String platformName = Configuration.getPlatform(entry.getKey());
             if (platformName != null) {
+                platformIdToName.put(entry.getKey(), platformName);
                 platformNameToId.put(platformName, entry.getKey());
             }
         });
     }
 
-    public static String getPlatformId(String platformName) {
-        return platformNameToId.get(platformName);
-    }
+    public static String getPlatformId(String platformName) { return platformNameToId.get(platformName); }
+
+    public static String getPlatformName(String platformId) { return platformIdToName.get(platformId); }
 
     public static List<String> getPlatformNames() {
         List<String> platformNames = new ArrayList<>();
-        platformNameToId.entrySet().forEach((entry) -> {
+        platformNameToId.entrySet().forEach(entry -> {
             platformNames.add(entry.getKey());
         });
         return platformNames;
@@ -65,7 +69,7 @@ public class ParseManager {
 
     public static List<String> getContestPlatformNames() {
         List<String> platformNames = new ArrayList<>();
-        platformNameToId.entrySet().forEach((entry) -> {
+        platformNameToId.entrySet().forEach(entry -> {
             if (ALL_CONTEST_PLATFORMS.contains(entry.getValue())) {
                 platformNames.add(entry.getKey());
             }
@@ -73,17 +77,28 @@ public class ParseManager {
         return platformNames;
     }
 
-    public static Problem parseProblem(String platformName, String url)
-            throws MalformedURLException, ParserConfigurationException {
-        Parser parser = PLATFORM_ID_TO_PARSER.get(platformNameToId.get(platformName));
-        String problemText = FileUtilities.getWebPageContent(url);
-        if (problemText == null) {
-            throw new MalformedURLException();
+    @NotNull
+    public static Problem parseProblemFromHtml(String platformId, String page)
+            throws ParserConfigurationException {
+        String platformName = getPlatformName(platformId);
+        if (platformName == null) {
+            throw new ParserConfigurationException();
         }
-        Collection<Task> tasks = parser.parseTaskFromHTML(problemText);
+        Parser parser = PLATFORM_ID_TO_PARSER.get(platformId);
+        Collection<Task> tasks = parser.parseTaskFromHTML(page);
         if (tasks.isEmpty()) {
             throw new ParserConfigurationException();
         }
         return new Problem(platformName, tasks.iterator().next());
+    }
+
+    @NotNull
+    public static Problem parseProblemByUrl(String platformId, String url)
+            throws MalformedURLException, ParserConfigurationException {
+        String html = FileUtilities.getWebPageContent(url);
+        if (html == null) {
+            throw new MalformedURLException();
+        }
+        return parseProblemFromHtml(platformId, html);
     }
 }
