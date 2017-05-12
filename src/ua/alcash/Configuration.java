@@ -13,7 +13,7 @@ public class Configuration {
 
     static final public String CONFIGURATION_FILE_NAME = PROJECT_NAME + ".xml";
 
-    static private Properties properties = new Properties();
+    static private Properties properties;
 
     static public String get(String key) { return properties.getProperty(key); }
 
@@ -28,8 +28,10 @@ public class Configuration {
         try {
             FileInputStream input = new FileInputStream(
                     workspaceDirectory + java.io.File.separator + CONFIGURATION_FILE_NAME);
-            properties.loadFromXML(input);
-        } catch (IOException exception) {
+            Properties loadedProperties = new Properties();
+            loadedProperties.loadFromXML(input);
+            properties = loadedProperties;
+        } catch (Throwable exception) {
             success = false;
         }
         return success;

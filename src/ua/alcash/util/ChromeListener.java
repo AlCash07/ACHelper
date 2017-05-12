@@ -11,27 +11,51 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
 
 /**
  * Created by oleksandr.bacherikov on 5/11/17.
  */
-public class ChromeListener extends SwingWorker<Void, Problem> {
+public class ChromeListener implements Runnable {
     ProblemSetPane parent;
 
     private ServerSocket serverSocket;
 
-    public ChromeListener(ProblemSetPane parent, int port) throws IOException {
+    public ChromeListener(ProblemSetPane parent) {
         this.parent = parent;
-        serverSocket = new ServerSocket(port);
+    }
+
+    public void start(String portString) {
+        stop();
+        if (portString == null) {
+            return;
+        }
+        System.out.println(portString);
+        try {
+            int port = Integer.parseInt(portString);
+            serverSocket = new ServerSocket(port);
+            new Thread(this, "ChromeListenerThread").start();
+        } catch (IOException exception) {
+            JOptionPane.showMessageDialog(parent,
+                    "Could not create serverSocket for Chrome parser," +
+                            "probably another CHelper-eligible project is running.",
+                    Configuration.PROJECT_NAME,
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public void stop() {
+        try {
+            serverSocket.close();
+        } catch (Throwable exception) {
+        }
     }
 
     @Override
-    public Void doInBackground() {
-        while (!isCancelled()) {
+    public void run() {
+        while (true) {
             try {
                 if (serverSocket.isClosed())
-                    return null;
+                    return;
                 Socket socket = serverSocket.accept();
                 try {
                     BufferedReader reader = new BufferedReader(
@@ -44,9 +68,16 @@ public class ChromeListener extends SwingWorker<Void, Problem> {
                         builder.append(s).append('\n');
                     final String page = builder.toString();
                     try {
-                        publish(ParseManager.parseProblemFromHtml(platformId, page));
+                        final Problem problem = ParseManager.parseProblemFromHtml(platformId, page);
+                        SwingUtilities.invokeLater(() -> {
+                            parent.addProblem(problem);
+                        });
                     } catch (ParserConfigurationException exception) {
-                        publish(new Problem("", platformId, "", ""));
+                        SwingUtilities.invokeLater(() -> {
+                            JOptionPane.showMessageDialog(parent, getErrorMessage(platformId),
+                                    Configuration.PROJECT_NAME,
+                                    JOptionPane.ERROR_MESSAGE);
+                        });
                     }
                 } finally {
                     socket.close();
@@ -54,28 +85,16 @@ public class ChromeListener extends SwingWorker<Void, Problem> {
             } catch (Throwable exception) {
             }
         }
-        try {
-            serverSocket.close();
-        } catch (IOException exception) {
-        }
-        return null;
     }
 
-    @Override
-    protected void process(List<Problem> problems) {
-        for (Problem problem : problems) {
-            if (problem.getProblemId().isEmpty()) {
-                String message = "Failed to parse message from CHelper Chrome extension.\n";
-                if (problem.getProblemName().isEmpty()) {
-                    message += "Message doesn't specify the platform.";
-                } else {
-                    message += "Possibly, " + problem.getProblemName() + " platform was deleted "
-                            + " from configuration file or the format has changed";
-                }
-                JOptionPane.showMessageDialog(parent, message, Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
-            } else {
-                parent.addProblem(problem);
-            }
+    private String getErrorMessage(String platformId) {
+        String message = "Failed to parse message from CHelper Chrome extension.\n";
+        if (platformId.isEmpty()) {
+            message += "Message is empty.";
+        } else {
+            message += "Possibly, " + platformId + " platform was deleted from configuration file"
+                    + " or the format has changed";
         }
+        return message;
     }
 }

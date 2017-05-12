@@ -2,6 +2,7 @@ package ua.alcash.ui;
 
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
+import ua.alcash.util.ChromeListener;
 import ua.alcash.util.ParseManager;
 
 import javax.swing.*;
@@ -20,6 +21,8 @@ public class MainFrame extends JFrame {
     private JMenuItem switchWorkspace;
     private JMenuItem clearWorkspace;
     private JMenuItem exitApp;
+
+    ChromeListener chromeListener;
 
     public MainFrame() throws InstantiationException {
         problemsPane = new ProblemSetPane(this);
@@ -49,13 +52,14 @@ public class MainFrame extends JFrame {
         });
         setContentPane(problemsPane);
         createMainMenu();
-        configure();
 
         // set system proxy if there is one
         try {
             System.setProperty("java.net.useSystemProxies", "true");
         } finally {
         }
+        chromeListener = new ChromeListener(problemsPane);
+        configure();
 
         pack();
         setLocationRelativeTo(null);
@@ -65,6 +69,8 @@ public class MainFrame extends JFrame {
         ParseManager.configure();
         problemsPane.configure();
         setupShortcuts();
+
+        chromeListener.start(Configuration.get("CHelper port"));
     }
 
     private void createMainMenu() {
@@ -184,6 +190,7 @@ public class MainFrame extends JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 problemsPane.deleteAllProblems();
             }
+            chromeListener.stop();
             dispose();
             System.exit(0);
         }
