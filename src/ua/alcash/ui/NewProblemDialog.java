@@ -31,33 +31,33 @@ public class NewProblemDialog extends JDialog {
 
     public NewProblemDialog(Frame parent) {
         super(parent, true);
+        setTitle("Enter problem information or URL to parse");
         setContentPane(rootPanel);
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent event) {
-                if (!parseButton.isEnabled()) {
-                    abortParsing();
-                }
-                dispose();
+                closeDialog();
             }
         });
+        parseButton.addActionListener(event -> startParsing());
+        abortParsingButton.addActionListener(event -> abortParsing());
+        createProblemButton.addActionListener(event -> createProblem());
+    }
 
+    public void show(Frame parent) {
+        problemIdField.requestFocus();  // set cursor in problem ID field
+        setLocationRelativeTo(parent);
+        setVisible(true);
+    }
+
+    public void configure() {
         List<String> platformNames;
         platformNames = ParseManager.getPlatformNames();
         Collections.sort(platformNames);
         platformComboBox.setMaximumRowCount(platformNames.size());
         platformComboBox.setModel(new DefaultComboBoxModel<>(platformNames.toArray(new String[0])));
-
-        parseButton.addActionListener(event -> startParsing());
-        abortParsingButton.addActionListener(event -> abortParsing());
-        createProblemButton.addActionListener(event -> createProblem());
-        setupShortcuts();
-
-        // sets cursor in problem ID field
-        problemIdField.requestFocus();
-
         pack();
-        setLocationRelativeTo(parent);
+        setupShortcuts();
     }
 
     private void setupShortcuts() {
@@ -165,6 +165,9 @@ public class NewProblemDialog extends JDialog {
     }
 
     private void closeDialog() {
-        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+        if (!parseButton.isEnabled()) {
+            abortParsing();
+        }
+        setVisible(false);
     }
 }

@@ -13,8 +13,6 @@ import java.awt.event.WindowEvent;
  * Created by oleksandr.bacherikov on 5/9/17.
  */
 public class MainFrame extends JFrame {
-    private ProblemSetPane problemsPane;
-
     private JMenuItem newContest;
     private JMenuItem newProblem;
     private JMenuItem saveWorkspace;
@@ -22,7 +20,11 @@ public class MainFrame extends JFrame {
     private JMenuItem clearWorkspace;
     private JMenuItem exitApp;
 
-    ChromeListener chromeListener;
+    private ProblemSetPane problemsPane;
+    NewProblemDialog problemDialog = new NewProblemDialog(this);
+    NewContestDialog contestDialog = new NewContestDialog(this);
+
+    private ChromeListener chromeListener;
 
     public MainFrame() throws InstantiationException {
         problemsPane = new ProblemSetPane(this);
@@ -67,6 +69,7 @@ public class MainFrame extends JFrame {
 
     public void configure() {
         ParseManager.configure();
+        problemDialog.configure();
         ProblemSetPane.configure();
         setupShortcuts();
 
@@ -145,17 +148,15 @@ public class MainFrame extends JFrame {
     }
 
     private void getNewContest() {
-//        NewContestDialog contestDialog = new NewContestDialog(this);
-//        contestDialog.setVisible(true);  // this is modal; it will block until the window is closed
+        contestDialog.show(this);
 //        problemsPane.addContest(contestDialog.getProblemList());
     }
 
     private void getNewProblem() {
-        NewProblemDialog problemDialog = new NewProblemDialog(this);
-        problemDialog.setVisible(true);
+        problemDialog.show(this);
         Problem problem = problemDialog.getProblem();
         if (problem != null) {
-            problemsPane.addProblem(problemDialog.getProblem());
+            problemsPane.addProblem(problem);
         }
     }
 
@@ -191,7 +192,6 @@ public class MainFrame extends JFrame {
                 problemsPane.closeAllProblems(true);
             }
             chromeListener.stop();
-            dispose();
             System.exit(0);
         }
     }
