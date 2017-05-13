@@ -146,7 +146,7 @@ public class ProblemSetPane extends JTabbedPane {
         removeTabAt(index);
     }
 
-    public void deleteAllProblems() {
-        while (!problems.isEmpty()) closeProblem(0, true);
+    public void closeAllProblems(boolean delete) {
+        while (!problems.isEmpty()) closeProblem(0, delete);
     }
 }

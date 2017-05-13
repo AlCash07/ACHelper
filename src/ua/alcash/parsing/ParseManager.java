@@ -1,4 +1,4 @@
-package ua.alcash.util;
+package ua.alcash.parsing;
 
 import net.egork.chelper.parser.*;
 import net.egork.chelper.task.Task;
@@ -78,7 +78,7 @@ public class ParseManager {
     }
 
     @NotNull
-    public static Problem parseProblemFromHtml(String platformId, String page)
+    public static Collection<Problem> parseProblemsFromHtml(String platformId, String page)
             throws ParserConfigurationException {
         String platformName = getPlatformName(platformId);
         if (platformName == null) {
@@ -89,7 +89,11 @@ public class ParseManager {
         if (tasks.isEmpty()) {
             throw new ParserConfigurationException();
         }
-        return new Problem(platformName, tasks.iterator().next());
+        ArrayList<Problem> problems = new ArrayList<>();
+        for (Task task : tasks) {
+            problems.add(new Problem(platformName, task));
+        }
+        return problems;
     }
 
     @NotNull
@@ -99,6 +103,6 @@ public class ParseManager {
         if (html == null) {
             throw new MalformedURLException();
         }
-        return parseProblemFromHtml(platformId, html);
+        return parseProblemsFromHtml(platformId, html).iterator().next();
     }
 }

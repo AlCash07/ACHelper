@@ -2,8 +2,8 @@ package ua.alcash.ui;
 
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
-import ua.alcash.util.ChromeListener;
-import ua.alcash.util.ParseManager;
+import ua.alcash.network.ChromeListener;
+import ua.alcash.parsing.ParseManager;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -67,7 +67,7 @@ public class MainFrame extends JFrame {
 
     public void configure() {
         ParseManager.configure();
-        problemsPane.configure();
+        ProblemSetPane.configure();
         setupShortcuts();
 
         chromeListener.start(Configuration.get("CHelper port"));
@@ -110,7 +110,7 @@ public class MainFrame extends JFrame {
                     Configuration.PROJECT_NAME,
                     JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                problemsPane.deleteAllProblems();
+                problemsPane.closeAllProblems(true);
             }
         });
         workspaceMenu.add(clearWorkspace);
@@ -174,8 +174,8 @@ public class MainFrame extends JFrame {
                         JOptionPane.WARNING_MESSAGE);
                 return SelectionResult.FAIL;
             }
+            problemsPane.closeAllProblems(false);
             problemsPane.workspaceDirectory = directory;
-            problemsPane.removeAll();
             return SelectionResult.SUCCESS;
         }
         return SelectionResult.CANCEL;
@@ -188,7 +188,7 @@ public class MainFrame extends JFrame {
                 JOptionPane.YES_NO_CANCEL_OPTION);
         if (confirm != JOptionPane.CANCEL_OPTION) {
             if (confirm == JOptionPane.YES_OPTION) {
-                problemsPane.deleteAllProblems();
+                problemsPane.closeAllProblems(true);
             }
             chromeListener.stop();
             dispose();

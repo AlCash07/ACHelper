@@ -1,8 +1,9 @@
-package ua.alcash.util;
+package ua.alcash.network;
 
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
 import ua.alcash.ui.ProblemSetPane;
+import ua.alcash.parsing.ParseManager;
 
 import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collection;
 
 /**
  * Created by oleksandr.bacherikov on 5/11/17.
@@ -29,7 +31,6 @@ public class ChromeListener implements Runnable {
         if (portString == null) {
             return;
         }
-        System.out.println(portString);
         try {
             int port = Integer.parseInt(portString);
             serverSocket = new ServerSocket(port);
@@ -68,9 +69,9 @@ public class ChromeListener implements Runnable {
                         builder.append(s).append('\n');
                     final String page = builder.toString();
                     try {
-                        final Problem problem = ParseManager.parseProblemFromHtml(platformId, page);
+                        final Collection<Problem> problems = ParseManager.parseProblemsFromHtml(platformId, page);
                         SwingUtilities.invokeLater(() -> {
-                            parent.addProblem(problem);
+                            for (Problem problem : problems) parent.addProblem(problem);
                         });
                     } catch (ParserConfigurationException exception) {
                         SwingUtilities.invokeLater(() -> {

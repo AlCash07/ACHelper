@@ -2,7 +2,7 @@ package ua.alcash.ui;
 
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
-import ua.alcash.util.ParseManager;
+import ua.alcash.parsing.ParseManager;
 
 import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;

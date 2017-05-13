@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import net.egork.chelper.task.StreamConfiguration;
 import net.egork.chelper.task.Task;
 import net.egork.chelper.task.TestType;
-import ua.alcash.util.ParseManager;
+import ua.alcash.parsing.ParseManager;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
