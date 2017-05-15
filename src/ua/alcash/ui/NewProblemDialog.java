@@ -124,13 +124,9 @@ public class NewProblemDialog extends JDialog {
                 dialog.parent.problemsPane.addProblems(get());
                 dialog.closeDialog();
             } catch (ExecutionException exception) {
-                String message;
-                if (exception.getCause() instanceof MalformedURLException) {
-                    message = "Malformed URL.";
-                } else {
-                    message = "Entered URL doesn't match the selected platform.";
-                }
-                JOptionPane.showMessageDialog(dialog, message, Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, exception.getMessage(),
+                        Configuration.PROJECT_NAME,
+                        JOptionPane.ERROR_MESSAGE);
             } catch (Exception exception) {
             } finally {
                 dialog.restoreButtonStateAfterParsing();

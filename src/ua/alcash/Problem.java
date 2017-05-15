@@ -77,6 +77,7 @@ public class Problem {
         problemName = task.name;
         this.platformId = platformId;
         contestName = task.contestName;
+        if (contestName == null) contestName = "";
 
         // for GCJ and FHC ignore the file name, because the program is executed only locally
         if (task.input.type != StreamConfiguration.StreamType.LOCAL_REGEXP) {
@@ -87,6 +88,7 @@ public class Problem {
         if (outputFile == null) outputFile = "";
 
         testType = task.testType;
+        if (testType == null) testType = TestType.SINGLE;
 
         for (int i = 0; i < task.tests.length; ++i) {
             String testName = sampleTestName + (i + 1);

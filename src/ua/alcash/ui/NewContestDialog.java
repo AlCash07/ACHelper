@@ -16,13 +16,18 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by oleksandr.bacherikov on 5/13/17.
  */
 public class NewContestDialog extends JDialog {
+    private final static String PARSING = "Parsing...";
+
     private JPanel rootPanel;
-    private JTextField urlTextField;
+    private JTextField urlField;
     private JButton scheduleButton;
     private JButton parseButton;
     private JButton abortButton;
@@ -52,7 +57,7 @@ public class NewContestDialog extends JDialog {
     }
 
     public void display() {
-        urlTextField.requestFocus();  // set cursor in url field
+        urlField.requestFocus();  // set cursor in url field
         if (scheduleButton.isEnabled()) {
             int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
             int minute = Calendar.getInstance().get(Calendar.MINUTE);
@@ -79,8 +84,8 @@ public class NewContestDialog extends JDialog {
             }
         });
         // hitting enter will perform the same action as clicking parse button
-        urlTextField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
-        urlTextField.getActionMap().put("enter", new AbstractAction() {
+        urlField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
+        urlField.getActionMap().put("enter", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent event) {
                 startParsing();
@@ -89,6 +94,10 @@ public class NewContestDialog extends JDialog {
     }
 
     private void toggleButtons(boolean enabled) {
+        if (enabled) {
+            scheduleButton.setText("Schedule");
+            parseButton.setText("Parse");
+        }
         scheduleButton.setEnabled(enabled);
         hourSpinner.setEnabled(enabled);
         minuteSpinner.setEnabled(enabled);
@@ -116,13 +125,9 @@ public class NewContestDialog extends JDialog {
                 dialog.parent.problemsPane.addProblems(get());
                 dialog.closeDialog();
             } catch (ExecutionException exception) {
-                String message;
-                if (exception.getCause() instanceof MalformedURLException) {
-                    message = "Malformed URL.";
-                } else {
-                    message = "Entered URL doesn't match the selected platform.";
-                }
-                JOptionPane.showMessageDialog(dialog, message, Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, exception.getMessage(),
+                        Configuration.PROJECT_NAME,
+                        JOptionPane.ERROR_MESSAGE);
             } catch (Exception exception) {
             } finally {
                 dialog.toggleButtons(true);
@@ -131,6 +136,7 @@ public class NewContestDialog extends JDialog {
     }
 
     BackgroundContestParser contestParser;
+    ScheduledExecutorService scheduler;
 
     private void schedule() {
         scheduleButton.setText("Scheduled...");
@@ -145,28 +151,35 @@ public class NewContestDialog extends JDialog {
         calendar.set(Calendar.MINUTE, (Integer) minuteSpinner.getValue());
         // set random 10-20 seconds delay
         calendar.set(Calendar.SECOND, new Random().nextInt(11) + 10);
-//        Date date = calendar.getTime();
-//        if (date.before(Calendar.getInstance().getTime())) {
-//            date = new Date(calendar.getTimeInMillis() + 24*3600*1000);
-//        }
+        long delay = calendar.getTimeInMillis() - System.currentTimeMillis();
+        if (delay < 0) {
+            delay += 24 * 60 * 60 * 1000;
+        }
+        scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.schedule(() -> {
+            scheduleButton.setText("Schedule");
+            startParsing();
+        }, delay, TimeUnit.MILLISECONDS);
     }
 
     private void startParsing() {
-        parseButton.setText("Parsing...");
+        parseButton.setText(PARSING);
         toggleButtons(false);
+        contestParser = new BackgroundContestParser(this, urlField.getText());
+        contestParser.execute();
     }
 
     private void abort() {
-        if (scheduleButton.getText().equals("Scheduled...")) {
-            scheduleButton.setText("Schedule");
+        if (parseButton.getText().equals(PARSING)) {
+            contestParser.cancel(true);
         } else {
-            parseButton.setText("Parse");
+            scheduler.shutdownNow();
         }
         toggleButtons(true);
     }
 
     private void closeDialog() {
-        if (!parseButton.isEnabled()) {
+        if (parseButton.getText().equals(PARSING)) {
             abort();
         }
         setVisible(false);

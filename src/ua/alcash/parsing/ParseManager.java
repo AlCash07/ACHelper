@@ -75,7 +75,10 @@ public class ParseManager {
         });
     }
 
-    public static String getPlatformName(String platformId) { return platformIdToName.get(platformId); }
+    public static String getPlatformName(String platformId) {
+        String platformName = platformIdToName.get(platformId);
+        return platformName != null ? platformName : "";
+    }
 
     public static List<String> getPlatformIds() {
         List<String> platformIds = new ArrayList<>();
@@ -159,7 +162,7 @@ public class ParseManager {
         String contestUrl = PLATFORM_ID_TO_CONTEST_URL.get(platformId);
         int index = url.indexOf(contestUrl);
         if (index == -1) {
-            throw new MalformedURLException("Invalid contest url for " + platformId);
+            throw new MalformedURLException("Invalid contest URL for " + platformId);
         }
         String contestId = url.substring(index + contestUrl.length());
         contestId = contestId.replaceFirst("[\\$\\?#/\\\\].*", "");
