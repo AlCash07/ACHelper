@@ -4,7 +4,6 @@
     <comment>ACHelper configuration file</comment>
 
     <entry key="platform atcoder">AtCoder</entry>
-    <entry key="platform bayan">Bayan</entry>
     <entry key="platform codechef">CodeChef</entry>
     <entry key="platform codeforces">Codeforces</entry>
     <entry key="platform csacademy">CS Academy</entry>

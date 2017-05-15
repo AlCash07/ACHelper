@@ -37,7 +37,7 @@ public class Problem {
 
     String problemId;
     String problemName;
-    String platformName;
+    String platformId;
     String contestName;
 
     String inputFile;
@@ -55,10 +55,10 @@ public class Problem {
 
     String directory;
 
-    public Problem(String problemId, String problemName, String platformName, String contestName) {
+    public Problem(String problemId, String problemName, String platformId, String contestName) {
         this.problemId = problemId;
         this.problemName = problemName;
-        this.platformName = platformName;
+        this.platformId = platformId;
         this.contestName = contestName;
 
         inputFile = "";
@@ -69,13 +69,13 @@ public class Problem {
         setDirectory();
     }
 
-    public Problem(String platformName, Task task) {
+    public Problem(String platformId, Task task) {
         problemId = task.taskClass;
         if (problemId.startsWith("Task")) {
             problemId = problemId.substring(4);
         }
         problemName = task.name;
-        this.platformName = platformName;
+        this.platformId = platformId;
         contestName = task.contestName;
 
         // for GCJ and FHC ignore the file name, because the program is executed only locally
@@ -101,11 +101,11 @@ public class Problem {
         String[] tokens = Configuration.get("problem directory").split("%");
         for (int i = 1; i < tokens.length; i += 2) {
             switch (tokens[i]) {
-                case "platform_name":
-                    tokens[i] = platformName;
-                    break;
                 case "platform_id":
-                    tokens[i] = ParseManager.getPlatformId(platformName);
+                    tokens[i] = platformId;
+                    break;
+                case "platform_name":
+                    tokens[i] = ParseManager.getPlatformName(platformId);
                     break;
                 case "problem_id":
                     tokens[i] = problemId;
@@ -170,7 +170,8 @@ public class Problem {
         Collections.swap(testCases, index1, index2);
     }
 
-    public void deleteTestCase(int index) {
+    public void deleteTestCase(int index) throws IOException {
+        testCases.get(index).deleteFromDisk(directory);
         testCaseNames.remove(testCases.get(index).getName());
         testCases.remove(index);
     }

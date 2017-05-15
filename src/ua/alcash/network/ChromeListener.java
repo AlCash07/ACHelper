@@ -70,15 +70,12 @@ public class ChromeListener implements Runnable {
                     final String page = builder.toString();
                     try {
                         final Collection<Problem> problems = ParseManager.parseProblemsFromHtml(platformId, page);
-                        SwingUtilities.invokeLater(() -> {
-                            for (Problem problem : problems) parent.addProblem(problem);
-                        });
+                        SwingUtilities.invokeLater(() -> parent.addProblems(problems));
                     } catch (ParserConfigurationException exception) {
-                        SwingUtilities.invokeLater(() -> {
+                        SwingUtilities.invokeLater(() ->
                             JOptionPane.showMessageDialog(parent, getErrorMessage(platformId),
                                     Configuration.PROJECT_NAME,
-                                    JOptionPane.ERROR_MESSAGE);
-                        });
+                                    JOptionPane.ERROR_MESSAGE));
                     }
                 } finally {
                     socket.close();

@@ -11,6 +11,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Created by oleksandr.bacherikov on 5/9/17.
@@ -82,7 +83,7 @@ public class ProblemSetPane extends JTabbedPane {
         }
     }
 
-    public void addProblem(Problem newProblem) {
+    private void addProblem(Problem newProblem) {
         for (Problem problem : problems) {
             if (problem.getDirectory().equals(newProblem.getDirectory())) {
                 JOptionPane.showMessageDialog(this,
@@ -97,10 +98,9 @@ public class ProblemSetPane extends JTabbedPane {
         addTab(newProblem.getProblemId(), panel);
         setSelectedComponent(panel);
         writeProblemToDisk(newProblem);
-        // run gerenation script if not adding a contest
     }
 
-    public void addContest(ArrayList<Problem> problems) {
+    public void addProblems(Collection<Problem> problems) {
         if (problems == null || problems.isEmpty()) {
             return;
         }
@@ -109,6 +109,7 @@ public class ProblemSetPane extends JTabbedPane {
             addProblem(problem);
         }
         setSelectedIndex(firstProblemIndex);
+        // run gerenation script if not adding a contest
     }
 
     private void writeProblemToDisk(Problem problem) {

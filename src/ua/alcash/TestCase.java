@@ -105,4 +105,10 @@ public class TestCase {
         modifiedOutput = false;
         skipped = false;
     }
+
+    public void deleteFromDisk(String problemPath) throws IOException {
+        Files.delete(Paths.get(problemPath, name + inputExtension));
+        Files.delete(Paths.get(problemPath, name + expectedOutputExtension));
+        Files.delete(Paths.get(problemPath, name + programOutputExtension));
+    }
 }

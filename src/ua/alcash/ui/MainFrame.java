@@ -20,9 +20,9 @@ public class MainFrame extends JFrame {
     private JMenuItem clearWorkspace;
     private JMenuItem exitApp;
 
-    private ProblemSetPane problemsPane;
-    NewProblemDialog problemDialog = new NewProblemDialog(this);
-    NewContestDialog contestDialog = new NewContestDialog(this);
+    ProblemSetPane problemsPane;
+    private NewProblemDialog problemDialog = new NewProblemDialog(this);
+    private NewContestDialog contestDialog = new NewContestDialog(this);
 
     private ChromeListener chromeListener;
 
@@ -91,11 +91,11 @@ public class MainFrame extends JFrame {
         newMenu.setText("New...");
 
         newContest.setText("Contest");
-        newContest.addActionListener(event -> getNewContest());
+        newContest.addActionListener(event -> contestDialog.display());
         newMenu.add(newContest);
 
         newProblem.setText("Problem");
-        newProblem.addActionListener(event -> getNewProblem());
+        newProblem.addActionListener(event -> problemDialog.display());
         newMenu.add(newProblem);
 
         menuBar.add(newMenu);
@@ -145,19 +145,6 @@ public class MainFrame extends JFrame {
         clearWorkspace.setAccelerator(Configuration.getShortcut("workspace delete problems"));
         switchWorkspace.setAccelerator(Configuration.getShortcut("workspace switch"));
         exitApp.setAccelerator(Configuration.getShortcut("exit"));
-    }
-
-    private void getNewContest() {
-        contestDialog.show(this);
-//        problemsPane.addContest(contestDialog.getProblemList());
-    }
-
-    private void getNewProblem() {
-        problemDialog.show(this);
-        Problem problem = problemDialog.getProblem();
-        if (problem != null) {
-            problemsPane.addProblem(problem);
-        }
     }
 
     private enum SelectionResult {SUCCESS, FAIL, CANCEL}

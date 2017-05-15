@@ -11,6 +11,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.text.ParseException;
 
 /**
  * Created by oleksandr.bacherikov on 5/9/17.
@@ -177,18 +179,30 @@ public class ProblemPanel extends JPanel {
     }
 
     private void deleteTestCase() {
-        // add option to delete from disk
-        int index = getSelectedIndex();
         int confirmed = JOptionPane.showConfirmDialog(this,
-                "Are you sure?", "Confirm delete", JOptionPane.YES_NO_OPTION);
+                "Are you sure you want to delete this test case?",
+                Configuration.PROJECT_NAME,
+                JOptionPane.YES_NO_OPTION);
         if (confirmed == JOptionPane.YES_OPTION) {
-            problem.deleteTestCase(index);
+            int index = getSelectedIndex();
+            try {
+                problem.deleteTestCase(index);
+            } catch (IOException exception) {
+                JOptionPane.showMessageDialog(this,
+                        "Deleting test case caused an error:\n" + exception.getMessage(),
+                        Configuration.PROJECT_NAME,
+                        JOptionPane.ERROR_MESSAGE);
+            }
             testsTableModel.rowDeleted(index);
         }
     }
 
     public void updateProblemFromInterface() {
-        problem.setTimeLimit((double)timeLimitSpinner.getValue());
+        try {
+            timeLimitSpinner.commitEdit();
+        } catch (ParseException exception) {
+        }
+        problem.setTimeLimit((Double) timeLimitSpinner.getValue());
         problem.setInputFile(inputFileField.getText());
         problem.setOutputFile(outputFileField.getText());
         problem.setTestType(TestType.values()[testTypeComboBox.getSelectedIndex()]);

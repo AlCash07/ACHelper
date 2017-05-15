@@ -1,12 +1,21 @@
 package ua.alcash.ui;
 
+import ua.alcash.Configuration;
+import ua.alcash.Problem;
+import ua.alcash.parsing.ParseManager;
+
 import javax.swing.*;
-import java.awt.*;
+import javax.xml.parsers.ParserConfigurationException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.net.MalformedURLException;
+import java.text.ParseException;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by oleksandr.bacherikov on 5/13/17.
@@ -20,9 +29,12 @@ public class NewContestDialog extends JDialog {
     private JSpinner hourSpinner;
     private JSpinner minuteSpinner;
 
-    NewContestDialog(Frame parent) {
+    MainFrame parent;
+
+    NewContestDialog(MainFrame parent) {
         super(parent, true);
-        setTitle("Enter contest URL to parse now or later");
+        this.parent = parent;
+        setTitle("Enter contest URL to parse");
         setContentPane(rootPanel);
         hourSpinner.setModel(new SpinnerNumberModel(0, 0, 23, 1));
         minuteSpinner.setModel(new SpinnerNumberModel(0, 0, 59, 1));
@@ -39,7 +51,7 @@ public class NewContestDialog extends JDialog {
         setupShortcuts();
     }
 
-    public void show(Frame parent) {
+    public void display() {
         urlTextField.requestFocus();  // set cursor in url field
         if (scheduleButton.isEnabled()) {
             int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
@@ -84,9 +96,59 @@ public class NewContestDialog extends JDialog {
         abortButton.setEnabled(!enabled);
     }
 
+    class BackgroundContestParser extends SwingWorker<Collection<Problem>, Object> {
+        NewContestDialog dialog;
+        String url;
+
+        BackgroundContestParser(NewContestDialog dialog, String url) {
+            this.dialog = dialog;
+            this.url = url;
+        }
+
+        @Override
+        public Collection<Problem> doInBackground() throws MalformedURLException, ParserConfigurationException {
+            return ParseManager.parseContestByUrl(url);
+        }
+
+        @Override
+        protected void done() {
+            try {
+                dialog.parent.problemsPane.addProblems(get());
+                dialog.closeDialog();
+            } catch (ExecutionException exception) {
+                String message;
+                if (exception.getCause() instanceof MalformedURLException) {
+                    message = "Malformed URL.";
+                } else {
+                    message = "Entered URL doesn't match the selected platform.";
+                }
+                JOptionPane.showMessageDialog(dialog, message, Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
+            } catch (Exception exception) {
+            } finally {
+                dialog.toggleButtons(true);
+            }
+        }
+    }
+
+    BackgroundContestParser contestParser;
+
     private void schedule() {
         scheduleButton.setText("Scheduled...");
         toggleButtons(false);
+        Calendar calendar = Calendar.getInstance();
+        try {
+            hourSpinner.commitEdit();
+            minuteSpinner.commitEdit();
+        } catch (ParseException exception) {
+        }
+        calendar.set(Calendar.HOUR_OF_DAY, (Integer) hourSpinner.getValue());
+        calendar.set(Calendar.MINUTE, (Integer) minuteSpinner.getValue());
+        // set random 10-20 seconds delay
+        calendar.set(Calendar.SECOND, new Random().nextInt(11) + 10);
+//        Date date = calendar.getTime();
+//        if (date.before(Calendar.getInstance().getTime())) {
+//            date = new Date(calendar.getTimeInMillis() + 24*3600*1000);
+//        }
     }
 
     private void startParsing() {

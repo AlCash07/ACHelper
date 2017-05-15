@@ -6,9 +6,9 @@ import ua.alcash.parsing.ParseManager;
 
 import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
-import java.awt.*;
 import java.awt.event.*;
 import java.net.MalformedURLException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -27,10 +27,11 @@ public class NewProblemDialog extends JDialog {
     private JButton abortParsingButton;
     private JButton createProblemButton;
 
-    Problem problem;
+    MainFrame parent;
 
-    public NewProblemDialog(Frame parent) {
+    public NewProblemDialog(MainFrame parent) {
         super(parent, true);
+        this.parent = parent;
         setTitle("Enter problem information or URL to parse");
         setContentPane(rootPanel);
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -44,18 +45,18 @@ public class NewProblemDialog extends JDialog {
         createProblemButton.addActionListener(event -> createProblem());
     }
 
-    public void show(Frame parent) {
+    public void display() {
         problemIdField.requestFocus();  // set cursor in problem ID field
         setLocationRelativeTo(parent);
         setVisible(true);
     }
 
     public void configure() {
-        List<String> platformNames;
-        platformNames = ParseManager.getPlatformNames();
-        Collections.sort(platformNames);
-        platformComboBox.setMaximumRowCount(platformNames.size());
-        platformComboBox.setModel(new DefaultComboBoxModel<>(platformNames.toArray(new String[0])));
+        List<String> platformIds;
+        platformIds = ParseManager.getPlatformIds();
+        Collections.sort(platformIds);
+        platformComboBox.setMaximumRowCount(platformIds.size());
+        platformComboBox.setModel(new DefaultComboBoxModel<>(platformIds.toArray(new String[0])));
         pack();
         setupShortcuts();
     }
@@ -88,12 +89,6 @@ public class NewProblemDialog extends JDialog {
         });
     }
 
-    public Problem getProblem() { return problem; }
-
-    private String getPlatformName() {
-        return (String) platformComboBox.getItemAt(platformComboBox.getSelectedIndex());
-    }
-
     private void createProblem() {
         String problemId = problemIdField.getText();
         if (problemId.isEmpty()) {
@@ -103,11 +98,13 @@ public class NewProblemDialog extends JDialog {
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-        problem = new Problem(problemId, problemNameField.getText(), getPlatformName(), contestNameField.getText());
+        Problem problem = new Problem(problemId, problemNameField.getText(),
+                (String) platformComboBox.getSelectedItem(), contestNameField.getText());
+        parent.problemsPane.addProblems(Collections.singletonList(problem));
         closeDialog();
     }
 
-    class BackgroundProblemParser extends SwingWorker<Problem, Object> {
+    class BackgroundProblemParser extends SwingWorker<Collection<Problem>, Object> {
         NewProblemDialog dialog;
         String url;
 
@@ -117,15 +114,14 @@ public class NewProblemDialog extends JDialog {
         }
 
         @Override
-        public Problem doInBackground() throws MalformedURLException, ParserConfigurationException {
-            String platformId = ParseManager.getPlatformId(dialog.getPlatformName());
-            return ParseManager.parseProblemByUrl(platformId, url);
+        public Collection<Problem> doInBackground() throws MalformedURLException, ParserConfigurationException {
+            return ParseManager.parseProblemByUrl(url);
         }
 
         @Override
         protected void done() {
             try {
-                dialog.problem = get();
+                dialog.parent.problemsPane.addProblems(get());
                 dialog.closeDialog();
             } catch (ExecutionException exception) {
                 String message;
