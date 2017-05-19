@@ -42,6 +42,7 @@ int main(int argc, char* argv[]) {
         if (!std::regex_match(answer.data(), integerRegex)
             && convertToDouble(answer, doubleAnswer)) {
             if (!convertToDouble(output, doubleOutput) || !compareDoubles(doubleAnswer, doubleOutput)) {
+                // doubles didn't match
                 if (answer.size() > maxTokenLengthToOutput) {
                     answer = answer.substr(0, maxTokenLengthToOutput - 3) + "...";
                 }
@@ -52,6 +53,7 @@ int main(int argc, char* argv[]) {
                     index, englishEnding(index).data(), answer.data(), output.data());
             }
         } else if (answer != output) {
+            // strings didn't match
             if (answer.size() <= maxTokenLengthToOutput && output.size() <= maxTokenLengthToOutput) {
                 quitf(_wa, "%d%s tokens differ - expected: '%s', found: '%s'",
                     index, englishEnding(index).data(), answer.data(), output.data());
