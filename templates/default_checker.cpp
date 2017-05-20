@@ -1,10 +1,17 @@
 #include "testlib.h"
+#include <limits>
 #include <regex>
 
+// returns false for integers to avoid comparing big integers as doubles with precision loss
 bool convertToDouble(const std::string src, double& dst) {
     char* endptr = 0;
     dst = std::strtod(src.data(), &endptr);
-    return !(*endptr != '\0' || endptr == src.data());
+    if (*endptr != '\0') {
+        dst = std::numeric_limits<double>::quiet_NaN();
+        return false;
+    }
+    static std::regex integerRegex(R"~([+-]?\d+)~");
+    return !std::regex_match(src.data(), integerRegex);
 }
 
 bool compareDoubles(double expected, double result) {
@@ -12,11 +19,11 @@ bool compareDoubles(double expected, double result) {
     if (std::isinf(expected)) return expected == result;
     if (std::isnan(result) || std::isinf(result)) return false;
     bool equal = false;
-#ifdef ABS
-    equal = equal || std::abs(expected - result) < EPS;
+#ifdef ABSOLUTE
+    equal = equal || std::abs(expected - result) < EPSILON;
 #endif
-#ifdef REL
-    equal = equal || std::abs((expected - result) / expected) < EPS;
+#ifdef RELATIVE
+    equal = equal || std::abs((expected - result) / expected) < EPSILON;
 #endif
     return equal;
 }
@@ -36,13 +43,11 @@ int main(int argc, char* argv[]) {
         ++index;
         std::string answer = ans.readToken();
         std::string output = ouf.readToken();
-        // integers are matched as regular strings to avoid converting big integers to doubles with precision loss
-        std::regex integerRegex(R"~([+-]?\d+)~");
         double doubleAnswer, doubleOutput;
-        if (!std::regex_match(answer.data(), integerRegex)
-            && convertToDouble(answer, doubleAnswer)) {
-            if (!convertToDouble(output, doubleOutput) || !compareDoubles(doubleAnswer, doubleOutput)) {
-                // doubles didn't match
+        bool isAnswerDouble = convertToDouble(answer, doubleAnswer);
+        bool isOutputDouble = convertToDouble(output, doubleOutput);
+        if (isAnswerDouble || isOutputDouble) {
+            if (!compareDoubles(doubleAnswer, doubleOutput)) {
                 if (answer.size() > maxTokenLengthToOutput) {
                     answer = answer.substr(0, maxTokenLengthToOutput - 3) + "...";
                 }
@@ -53,7 +58,6 @@ int main(int argc, char* argv[]) {
                     index, englishEnding(index).data(), answer.data(), output.data());
             }
         } else if (answer != output) {
-            // strings didn't match
             if (answer.size() <= maxTokenLengthToOutput && output.size() <= maxTokenLengthToOutput) {
                 quitf(_wa, "%d%s tokens differ - expected: '%s', found: '%s'",
                     index, englishEnding(index).data(), answer.data(), output.data());

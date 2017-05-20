@@ -1,6 +1,6 @@
 #include <iostream>
 
-class Solver {
+class %problem_id%Solver {
 public:
     bool solve(std::istream& in, std::ostream& out) {
         if (!in.good()) return false;
@@ -10,7 +10,7 @@ public:
 
 void solve(std::istream& in, std::ostream& out) {
     while (true) {
-        Solver solver;
+        %problem_id%Solver solver;
         if (!solver.solve(in, out)) break;
     }
 }

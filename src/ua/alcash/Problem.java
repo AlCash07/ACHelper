@@ -29,7 +29,7 @@ public class Problem {
 
     static public void configure() {
         defaultTimeLimit = Double.parseDouble(Configuration.get("default time limit"));
-        defaultCheckerParams = Configuration.get("default checker preprocessor directives");
+        defaultCheckerParams = Configuration.get("default checker compiler options");
         sampleTestName = Configuration.get("test sample");
         manualTestName = Configuration.get("test manual");
         testListFileName = Configuration.get("test list file");

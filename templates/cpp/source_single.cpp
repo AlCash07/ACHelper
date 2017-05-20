@@ -1,12 +1,12 @@
 #include <iostream>
 
-class Solver {
+class %problem_id%Solver {
 public:
     void solve(std::istream& in, std::ostream& out) {
     }
 };
 
 void solve(std::istream& in, std::ostream& out) {
-    Solver solver;
+    %problem_id%Solver solver;
     solver.solve(in, out);
 }

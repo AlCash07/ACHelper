@@ -76,7 +76,7 @@ public class TestCase {
         return String.join(delimiter, executionResults);
     }
 
-    public void setExecutionResults(String value) { executionResults = value.split(" ", 3); }
+    public void setExecutionResults(String value) { executionResults = value.split(" ", 2); }
 
     public void flipSkipped() { skipped = !skipped; }
 
