@@ -30,9 +30,9 @@
 
     <entry key="CHelper port">4243</entry>
 
-    <entry key="problem directory">%problem_id%</entry>
+    <entry key="problem directory">@problem_id@</entry>
     <entry key="default time limit">2</entry>
-    <entry key="default checker compiler options">-DEPSILON=1e-9 -DABSOLUTE -DRELATIVE</entry>
+    <entry key="default checker compiler options">-O2 -DEPSILON=1e-9 -DABSOLUTE -DRELATIVE</entry>
 
     <entry key="test sample">sample</entry>
     <entry key="test manual">manual</entry>

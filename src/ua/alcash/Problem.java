@@ -100,7 +100,7 @@ public class Problem {
     }
 
     private void setDirectory() {
-        String[] tokens = Configuration.get("problem directory").split("%");
+        String[] tokens = Configuration.get("problem directory").split("@");
         for (int i = 1; i < tokens.length; i += 2) {
             switch (tokens[i]) {
                 case "platform_id":

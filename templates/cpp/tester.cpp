@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -13,17 +12,31 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-const double TIME_LIMIT = 1.5;
-const double CHECKER_TIME_LIMIT = 1.0;
-
 using namespace std;
 
 extern void solve(istream& in, ostream& out);
+extern const double TIME_LIMIT;
 
-void runTest(const string& testFileName) {
-    ifstream in(testFileName + ".in");
-    ofstream out(testFileName + ".out");
-    solve(in, out);
+const double CHECKER_TIME_LIMIT = 1.0;
+
+string testsDirectory;
+
+struct TestCase {
+    TestCase(const string& fileName)
+        : inputFileName(testsDirectory + fileName + ".in")
+        , outputFileName(testsDirectory + fileName + ".out")
+        , answerFileName(testsDirectory + fileName + ".ans")
+    {}
+
+    void run() const {
+        ifstream in(inputFileName);
+        ofstream out(outputFileName);
+        solve(in, out);
+    }
+
+    string inputFileName;
+    string outputFileName;
+    string answerFileName;
 };
 
 // std::getline analog for file descriptors
@@ -96,7 +109,7 @@ int main(int argc, const char* argv[]) {
     string testsFileName;
     pathFile >> testsFileName;
     pathFile.close();
-    string testsDirectory = testsFileName.substr(0, testsFileName.find_last_of("/\\") + 1);
+    testsDirectory = testsFileName.substr(0, testsFileName.find_last_of("/\\") + 1);
 
     // read test names
     vector<vector<string>> testCases;
@@ -113,13 +126,12 @@ int main(int argc, const char* argv[]) {
         return testCases[testIndex][1] == "SKIPPED";
     };
 
-//#ifndef NDEBUG
-#if false
+#ifndef NDEBUG
     // in debug mode, tests are run without validation and updating tests list file
     for (size_t testIndex = 0, testCount = testCases.size(); testIndex < testCount; ++testIndex) {
         if (isSkipped(testIndex)) continue;
         cout << testCases[testIndex][0] << ": running" << endl;
-        runTest(testsDirectory + testCases[testIndex][0]);
+        TestCase(testCases[testIndex][0]).run();
     }
 #else
     int testsTotal = 0, testsPassed = 0;
@@ -149,48 +161,46 @@ int main(int argc, const char* argv[]) {
         if (testIndex == testCount) break;
 
         // run the test as a subprocess and measure time
-        string testFileName = testsDirectory + testCases[testIndex][0];
+        TestCase testCase(testCases[testIndex][0]);
         auto start = chrono::system_clock::now();
         string error;
-        int status = executeProcess([&testFileName](){
-            runTest(testFileName);
+        int status = executeProcess([&testCase](){
+            testCase.run();
         }, TIME_LIMIT, error);
         auto end = chrono::system_clock::now();
         double elapsed = chrono::duration_cast<chrono::duration<double>>(end - start).count();
 
+        // evaluation
         ostringstream resultStream;
-        resultStream << fixed << setprecision(3);
+        resultStream << fixed << setprecision(3) << elapsed << ' ';
         if (status == 0) {  // run checker
-            string checkerCommand = binaryPath + "Checker " + testFileName + ".in "
-                + testFileName + ".out " + testFileName + ".ans";
-            status = executeProcess([&checkerCommand]() {
-//                execl(checkerCommand.data());
+            string checkerCommand = binaryPath + "Checker";
+            status = executeProcess([&checkerCommand, &testCase]() {
+                execl(checkerCommand.data(),
+                    checkerCommand.data(),
+                    testCase.inputFileName.data(),
+                    testCase.outputFileName.data(),
+                    testCase.answerFileName.data());
             }, CHECKER_TIME_LIMIT, error);
-            if (status == 0) {
-                resultStream << "OK " << elapsed;
-                ++testsPassed;
-            } else if (status == 1) {  // either WA or checker crashed
-                if (error == "TLE") {
-                    status = -1;
-                } else {
-                    resultStream << "WA " << elapsed << ' ' << error;
-                }
-            }
-        } else if (status == 1) {
-            if (error == "TLE") {
-                resultStream << "TLE " << elapsed;
-            } else {
-                resultStream << "RE " << elapsed << ' ' << error;
+            if (status == 1 && error == "TLE") {
+                status = -1;
             }
         }
         if (status == -1) {
-            resultStream << "JE " << elapsed << " judgement error";
+            resultStream << "judgement error";
+        } else if (error == "TLE") {
+            resultStream << "time limit exceeded";
+        } else {
+            resultStream << error;
+        }
+        if (status == 0) {
+            ++testsPassed;
         }
         line = testCases[testIndex][1] = resultStream.str();
         auto spaceIndex = line.find(' ');
-        string verdict = line.substr(0, spaceIndex);
-        colorOutput(verdict, verdict == "OK");
-        cout << line.substr(spaceIndex) << endl;
+        cout << line.substr(0, spaceIndex);
+        colorOutput(line.substr(spaceIndex), status == 0);
+        cout << "\n";
     }
     cout << "========================================\n";
     if (testsPassed == testsTotal) {
