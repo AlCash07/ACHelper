@@ -34,7 +34,7 @@ public class NewContestDialog extends JDialog {
     private JSpinner hourSpinner;
     private JSpinner minuteSpinner;
 
-    MainFrame parent;
+    private MainFrame parent;
 
     NewContestDialog(MainFrame parent) {
         super(parent, true);
@@ -56,7 +56,7 @@ public class NewContestDialog extends JDialog {
         setupShortcuts();
     }
 
-    public void display() {
+    void display() {
         urlField.requestFocus();  // set cursor in url field
         if (scheduleButton.isEnabled()) {
             int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
@@ -135,8 +135,8 @@ public class NewContestDialog extends JDialog {
         }
     }
 
-    BackgroundContestParser contestParser;
-    ScheduledExecutorService scheduler;
+    private BackgroundContestParser contestParser;
+    private ScheduledExecutorService scheduler;
 
     private void schedule() {
         scheduleButton.setText("Scheduled...");

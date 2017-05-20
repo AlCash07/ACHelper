@@ -35,25 +35,25 @@ public class Problem {
         testListFileName = Configuration.get("test list file");
     }
 
-    String problemId;
-    String problemName;
-    String platformId;
-    String contestName;
+    private String problemId;
+    private String problemName;
+    private String platformId;
+    private String contestName;
 
-    String inputFile;
-    String outputFile;
+    private String inputFile;
+    private String outputFile;
 
-    TestType testType;
-    double timeLimit = defaultTimeLimit;
-    ArrayList<TestCase> testCases = new ArrayList<>();
-    Set<String> testCaseNames = new HashSet<>();
-    int manualTestIndex = 1;
+    private TestType testType;
+    private double timeLimit = defaultTimeLimit;
+    private ArrayList<TestCase> testCases = new ArrayList<>();
+    private Set<String> testCaseNames = new HashSet<>();
+    private int manualTestIndex = 1;
 
-    boolean interactive = false;
-    boolean customChecker = false;
-    String checkerParams = defaultCheckerParams;
+    private boolean interactive = false;
+    private boolean customChecker = false;
+    private String checkerParams = defaultCheckerParams;
 
-    String directory;
+    private String directory;
 
     public Problem(String problemId, String problemName, String platformId, String contestName) {
         this.problemId = problemId;
@@ -191,7 +191,7 @@ public class Problem {
             Stream<String> lines = Files.lines(testListFile, utf8);
             if (lines.anyMatch(line -> {
                 String[] tokens = line.split(" ");
-                return tokens.length > 1 && (tokens[1] == "RUNNING" || tokens[1] == "PENDING");
+                return tokens.length > 1 && (tokens[1].equals("RUNNING") || tokens[1].equals("PENDING"));
             })) {
                 throw new IOException("Cannot write tests to disk while testing is in progress.");
             }

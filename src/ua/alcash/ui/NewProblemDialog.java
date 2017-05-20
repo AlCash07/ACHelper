@@ -27,9 +27,9 @@ public class NewProblemDialog extends JDialog {
     private JButton abortParsingButton;
     private JButton createProblemButton;
 
-    MainFrame parent;
+    private MainFrame parent;
 
-    public NewProblemDialog(MainFrame parent) {
+    NewProblemDialog(MainFrame parent) {
         super(parent, true);
         this.parent = parent;
         setTitle("Enter problem information or URL to parse");
@@ -45,13 +45,13 @@ public class NewProblemDialog extends JDialog {
         createProblemButton.addActionListener(event -> createProblem());
     }
 
-    public void display() {
+    void display() {
         problemIdField.requestFocus();  // set cursor in problem ID field
         setLocationRelativeTo(parent);
         setVisible(true);
     }
 
-    public void configure() {
+    void configure() {
         List<String> platformIds;
         platformIds = ParseManager.getPlatformIds();
         Collections.sort(platformIds);
@@ -134,7 +134,7 @@ public class NewProblemDialog extends JDialog {
         }
     }
 
-    BackgroundProblemParser problemParser;
+    private BackgroundProblemParser problemParser;
 
     private void startParsing() {
         createProblemButton.setEnabled(false);

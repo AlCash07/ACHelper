@@ -16,10 +16,10 @@ import java.util.List;
 public class MultilineTableCellRenderer extends JTextArea implements TableCellRenderer {
     private List<List<Integer>> rowColHeight = new ArrayList<>();
 
-    int maxLength;
-    int maxLines;
+    private int maxLength;
+    private int maxLines;
 
-    public MultilineTableCellRenderer() {
+    MultilineTableCellRenderer() {
         maxLength = Integer.parseInt(Configuration.get("test maximum displayed length"));
         maxLines = Integer.parseInt(Configuration.get("test maximum displayed lines"));
         setLineWrap(true);
@@ -27,7 +27,7 @@ public class MultilineTableCellRenderer extends JTextArea implements TableCellRe
         setOpaque(true);
     }
 
-    protected String shorten(String value) {
+    private String shorten(String value) {
         String displayed = value;
         for (int i = 0, count = 0; i < displayed.length(); ++i) {
             if (displayed.charAt(i) == '\n') {

@@ -25,7 +25,7 @@ public class TestCaseDialog extends JDialog {
     private JCheckBox solvedCheckBox;
 
     class UpdateListener implements DocumentListener {
-        public boolean updated = false;
+        boolean updated = false;
 
         @Override
         public void changedUpdate(DocumentEvent event) { update(); }
@@ -50,7 +50,7 @@ public class TestCaseDialog extends JDialog {
 
     boolean saved = false;
 
-    public TestCaseDialog(Frame parent, TestCase testCase) {
+    TestCaseDialog(Frame parent, TestCase testCase) {
         super(parent, true);
         this.testCase = testCase;
         wasSolved = testCase.getSolved();

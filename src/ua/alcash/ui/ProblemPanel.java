@@ -43,7 +43,7 @@ public class ProblemPanel extends JPanel {
 
     private Problem problem;
 
-    public ProblemPanel(Frame parentFrame, Problem problem) {
+    ProblemPanel(Frame parentFrame, Problem problem) {
         this.parentFrame = parentFrame;
         setLayout(new GridLayout(1, 1));
         add(rootPanel);
@@ -98,7 +98,7 @@ public class ProblemPanel extends JPanel {
         setupShortcuts();
     }
 
-    public static void configure() {
+    static void configure() {
         Problem.configure();
         TestCase.configure();
     }
@@ -197,7 +197,7 @@ public class ProblemPanel extends JPanel {
         }
     }
 
-    public void updateProblemFromInterface() {
+    void updateProblemFromInterface() {
         try {
             timeLimitSpinner.commitEdit();
         } catch (ParseException exception) {

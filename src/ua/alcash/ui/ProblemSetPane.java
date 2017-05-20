@@ -23,7 +23,7 @@ public class ProblemSetPane extends JTabbedPane {
 
     private ArrayList<Problem> problems = new ArrayList<>();
 
-    public ProblemSetPane(Frame parentFrame) {
+    ProblemSetPane(Frame parentFrame) {
         this.parentFrame = parentFrame;
         setFont(new Font("Tahoma", Font.BOLD, 13));
         setTabLayoutPolicy(SCROLL_TAB_LAYOUT);
@@ -33,7 +33,7 @@ public class ProblemSetPane extends JTabbedPane {
         setupShortcuts();
     }
 
-    static public void configure() {
+    static void configure() {
         ProblemPanel.configure();
     }
 
@@ -124,7 +124,7 @@ public class ProblemSetPane extends JTabbedPane {
         }
     }
 
-    public void updateProblemsOnDisk() {
+    void updateProblemsOnDisk() {
         for (int i = 0; i < problems.size(); ++i) {
             ((ProblemPanel)getComponentAt(i)).updateProblemFromInterface();
             writeProblemToDisk(problems.get(i));
@@ -147,7 +147,7 @@ public class ProblemSetPane extends JTabbedPane {
         removeTabAt(index);
     }
 
-    public void closeAllProblems(boolean delete) {
+    void closeAllProblems(boolean delete) {
         while (!problems.isEmpty()) closeProblem(0, delete);
     }
 }

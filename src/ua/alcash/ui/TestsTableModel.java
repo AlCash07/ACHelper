@@ -9,11 +9,11 @@ import java.util.ArrayList;
  * Created by oleksandr.bacherikov on 5/9/17.
  */
 public class TestsTableModel extends AbstractTableModel {
-    ArrayList<TestCase> testCases;
-    final String[] columnNames = {"Input", "Expected output", "Program output", "Result"};
-    final Class[] columnClasses = {String.class, String.class, String.class, String.class};
+    private ArrayList<TestCase> testCases;
+    private final String[] columnNames = {"Input", "Expected output", "Program output", "Result"};
+    private final Class[] columnClasses = {String.class, String.class, String.class, String.class};
 
-    public TestsTableModel(ArrayList<TestCase> testCases) { this.testCases = testCases; }
+    TestsTableModel(ArrayList<TestCase> testCases) { this.testCases = testCases; }
 
     @Override
     public int getRowCount() { return testCases.size(); }
@@ -43,9 +43,9 @@ public class TestsTableModel extends AbstractTableModel {
         }
     }
 
-    public void rowUpdated(int index) { fireTableRowsUpdated(index, index); }
+    void rowUpdated(int index) { fireTableRowsUpdated(index, index); }
 
-    public void rowInserted() { fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1); }
+    void rowInserted() { fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1); }
 
-    public void rowDeleted(int index) { fireTableRowsDeleted(index, index); }
+    void rowDeleted(int index) { fireTableRowsDeleted(index, index); }
 }

@@ -1,7 +1,6 @@
 package ua.alcash.ui;
 
 import ua.alcash.Configuration;
-import ua.alcash.Problem;
 import ua.alcash.network.ChromeListener;
 import ua.alcash.parsing.ParseManager;
 
@@ -26,7 +25,7 @@ public class MainFrame extends JFrame {
 
     private ChromeListener chromeListener;
 
-    public MainFrame() throws InstantiationException {
+    private MainFrame() throws InstantiationException {
         problemsPane = new ProblemSetPane(this);
         if (!Configuration.load(problemsPane.workspaceDirectory)) {
             JOptionPane.showMessageDialog(this,
@@ -67,7 +66,7 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    public void configure() {
+    private void configure() {
         ParseManager.configure();
         problemDialog.configure();
         ProblemSetPane.configure();

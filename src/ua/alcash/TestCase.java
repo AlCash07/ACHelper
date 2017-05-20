@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Created by oleksandr.bacherikov on 5/8/17.
@@ -25,16 +25,16 @@ public class TestCase {
         programOutputExtension = "." + Configuration.getExtension("program output");
     }
 
-    String name;
-    String input = "";
-    String expectedOutput = "";
-    String programOutput = "";
-    String[] executionResults = new String[] {UNKNOWN_KEY};
+    private String name;
+    private String input = "";
+    private String expectedOutput = "";
+    private String programOutput = "";
+    private String[] executionResults = new String[] {UNKNOWN_KEY};
 
-    boolean skipped = false;
-    boolean modifiedInput = false;
-    boolean modifiedOutput = false;
-    boolean solved = false;
+    private boolean skipped = false;
+    private boolean modifiedInput = false;
+    private boolean modifiedOutput = false;
+    private boolean solved = false;
 
     public TestCase(String name) { this.name = name; }
 
@@ -70,7 +70,7 @@ public class TestCase {
         if (skipped) {
             return SKIPPED_KEY;
         }
-        if (executionResults.length == 1 && executionResults[0] == SKIPPED_KEY) {
+        if (executionResults.length == 1 && executionResults[0].equals(SKIPPED_KEY)) {
             return UNKNOWN_KEY;
         }
         return String.join(delimiter, executionResults);
@@ -84,11 +84,11 @@ public class TestCase {
 
     public void flipSolved() { solved = !solved; }
 
-    public void writeToDisk(String problemPath) throws IOException {
+    void writeToDisk(String problemPath) throws IOException {
         Charset utf8 = StandardCharsets.UTF_8;
         if (modifiedInput) {
             Path inputFile = Paths.get(problemPath, name + inputExtension);
-            Files.write(inputFile, Arrays.asList(input), utf8);
+            Files.write(inputFile, Collections.singletonList(input), utf8);
             modifiedInput = false;
         }
         Path expectedOutputFile = Paths.get(problemPath, name + expectedOutputExtension);
@@ -100,13 +100,13 @@ public class TestCase {
             Files.copy(programOutputFile, expectedOutputFile);
             solved = false;
         } else if (modifiedOutput) {
-            Files.write(expectedOutputFile, Arrays.asList(expectedOutput), utf8);
+            Files.write(expectedOutputFile, Collections.singletonList(expectedOutput), utf8);
         }
         modifiedOutput = false;
         skipped = false;
     }
 
-    public void deleteFromDisk(String problemPath) throws IOException {
+    void deleteFromDisk(String problemPath) throws IOException {
         Files.delete(Paths.get(problemPath, name + inputExtension));
         Files.delete(Paths.get(problemPath, name + expectedOutputExtension));
         Files.delete(Paths.get(problemPath, name + programOutputExtension));
