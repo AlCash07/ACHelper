@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 2.8)
+
+# custom directories
+set(TEMPLATES_DIR templates/cpp)
+
+# problems
+
+set(time_limit @time_limit@)
+set(memory_limit @memory_limit@)
+set(input_file_name @input_file_name@)
+set(output_file_name @output_file_name@)
+
+if(@test_type_changed@)
+  configure_file(${TEMPLATES_DIR}/source_@test_type@.cpp @problem_dir@/source.cpp)
+endif()
+
+if(@time_limit_changed@ or @memory_limit_changed@)
+  configure_file(${TEMPLATES_DIR}/limits.cpp @problem_dir@/limits.cpp)
+endif()
+
+if(@input_file_name_changed@ OR @output_file_name_changed@)
+  configure_file(${TEMPLATES_DIR}/main.cpp @problem_dir@/main.cpp)
+endif()

@@ -1,4 +1,4 @@
-#include <iostream>
+#include "solution.h"
 
 class @problem_id@Solver {
 public:

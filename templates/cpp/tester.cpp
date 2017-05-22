@@ -1,3 +1,5 @@
+#include "solution.h"
+
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
@@ -13,11 +15,6 @@
 #include <unistd.h>
 
 using namespace std;
-
-extern void solve(istream& in, ostream& out);
-extern const double TIME_LIMIT;
-
-const double CHECKER_TIME_LIMIT = 1.0;
 
 string testsDirectory;
 

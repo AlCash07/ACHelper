@@ -1,7 +1,6 @@
-#include <cstdio>
-#include <iostream>
+#include "solution.h"
 
-extern void solve(std::istream& in, std::ostream& out);
+#include <cstdio>
 
 int main() {
     std::cin.tie(0);
