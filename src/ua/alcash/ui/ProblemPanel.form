@@ -42,9 +42,7 @@
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <enabled value="false"/>
               <text value="Memory limit"/>
-              <toolTipText value="unused"/>
             </properties>
           </component>
           <component id="56fde" class="javax.swing.JSpinner" binding="timeLimitSpinner">
@@ -57,10 +55,7 @@
             <constraints>
               <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties>
-              <enabled value="false"/>
-              <toolTipText value="unused"/>
-            </properties>
+            <properties/>
           </component>
           <component id="4920d" class="javax.swing.JLabel">
             <constraints>
@@ -107,7 +102,6 @@
               <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <enabled value="false"/>
               <text value="Mb"/>
             </properties>
           </component>
@@ -127,7 +121,9 @@
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <toolTipText value="Caution: changing this value may overwrite the source file"/>
+            </properties>
           </component>
           <component id="9e508" class="javax.swing.JCheckBox" binding="interactiveCheckBox">
             <constraints>

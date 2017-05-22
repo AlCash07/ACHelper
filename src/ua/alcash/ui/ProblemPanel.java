@@ -52,6 +52,8 @@ public class ProblemPanel extends JPanel {
         problemName.setText(problem.getFullName());
         timeLimitSpinner.setModel(new SpinnerNumberModel(
                 problem.getTimeLimit(), 0, 9999, 1));
+        memoryLimitSpinner.setModel(new SpinnerNumberModel(
+                problem.getMemoryLimit(), 0, 9999, 1));
         testTypeComboBox.setModel(new DefaultComboBoxModel<>(new String[]{
                 TestType.SINGLE.toString(),
                 TestType.MULTI_NUMBER.toString(),
@@ -203,6 +205,7 @@ public class ProblemPanel extends JPanel {
         } catch (ParseException exception) {
         }
         problem.setTimeLimit((Double) timeLimitSpinner.getValue());
+        problem.setMemoryLimit((Double) memoryLimitSpinner.getValue());
         problem.setInputFile(inputFileField.getText());
         problem.setOutputFile(outputFileField.getText());
         problem.setTestType(TestType.values()[testTypeComboBox.getSelectedIndex()]);
