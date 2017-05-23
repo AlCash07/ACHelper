@@ -50,7 +50,11 @@ public class Generator {
             ArrayList<String> outputLines = new ArrayList<>();
             for (int i = 0; i < inputLines.size();) {
                 String line = inputLines.get(i);
-                outputLines.add(line);
+                String[] tokens = line.split("@");
+                for (int j = 1; j < tokens.length; j += 2) {
+                    tokens[j] = Configuration.get(tokens[j]);
+                }
+                outputLines.add(String.join("", tokens));
                 ++i;
                 if (line.equals(delimiter)) {
                     int last = i;
