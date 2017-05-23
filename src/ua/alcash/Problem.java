@@ -68,8 +68,7 @@ public class Problem {
     private static final int interactiveBit = 5;
     private static final int customCheckerBit = 6;
     private static final int checkerParamsBit = 7;
-    private static final int testCasesBit = 8;     // tests order or content changed
-    private static final int testCasesSetBit = 9;  // test was added or removed
+    private static final int testCasesBit = 8;  // test was added or removed
 
     private int changesMask = (1 << 10) - 1;
 
@@ -94,7 +93,7 @@ public class Problem {
         // for GCJ and FHC ignore the file name, because the program is executed only locally
         if (task.input.type != StreamConfiguration.StreamType.LOCAL_REGEXP) {
             if (task.input.fileName != null) inputFile = task.input.fileName;
-            outputFile = task.input.fileName;
+            if (task.output.fileName != null) outputFile = task.output.fileName;
         }
         if (task.testType != null) testType = task.testType;
 
@@ -120,6 +119,8 @@ public class Problem {
         }
         if (nameOnly) return Configuration.get(key);
         switch (key) {
+            case "problem_dir":
+                return directory;
             case "time_limit":
                 return String.valueOf(timeLimit);
             case "memory_limit":
@@ -164,7 +165,7 @@ public class Problem {
         }
     }
 
-    String substituteKeys(String input, boolean namesOnly) {
+    public String substituteKeys(String input, boolean namesOnly) {
         String[] tokens = input.split("@");
         for (int i = 1; i < tokens.length; i += 2) {
             tokens[i] = getValue(tokens[i], namesOnly);
@@ -237,18 +238,17 @@ public class Problem {
     public TestCase getTestCase(int index) { return testCases.get(index); }
 
     public void addTestCase(TestCase testCase) {
-        changesMask |= 1 << testCasesSetBit;
+        changesMask |= 1 << testCasesBit;
         testCases.add(testCase);
         testCaseNames.add(testCase.getName());
     }
 
     public void swapTestCases(int index1, int index2) {
-        changesMask |= 1 << testCasesBit;
         Collections.swap(testCases, index1, index2);
     }
 
     public void deleteTestCase(int index) throws IOException {
-        changesMask |= 1 << testCasesSetBit;
+        changesMask |= 1 << testCasesBit;
         testCases.get(index).deleteFromDisk(directory);
         testCaseNames.remove(testCases.get(index).getName());
         testCases.remove(index);
@@ -294,5 +294,10 @@ public class Problem {
                 return FileVisitResult.CONTINUE;
             }
         });
+    }
+
+    public boolean projectRegenerationRequired() {
+        return (changesMask & (1 << interactiveBit | 1 << customCheckerBit | 1 << testCasesBit)) > 0
+                || (customChecker && (changesMask & (1 << checkerParamsBit)) > 0);
     }
 }

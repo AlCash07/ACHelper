@@ -103,7 +103,6 @@ public class TestCase {
             Files.write(expectedOutputFile, Collections.singletonList(expectedOutput), utf8);
         }
         modifiedOutput = false;
-        skipped = false;
     }
 
     void deleteFromDisk(String problemPath) throws IOException {

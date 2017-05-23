@@ -33,7 +33,7 @@
     <entry key="problem directory">@problem_id@</entry>
     <entry key="default time limit">2</entry>
     <entry key="default memory limit">256</entry>
-    <entry key="default checker compiler options">-O2 -DEPSILON=1e-9 -DABSOLUTE -DRELATIVE</entry>
+    <entry key="default checker compiler options">-std=c++11 -O2 -DEPSILON=1e-9 -DABSOLUTE -DRELATIVE</entry>
 
     <entry key="test sample">sample</entry>
     <entry key="test manual">manual</entry>
@@ -50,5 +50,5 @@
     <entry key="generate files template">templates/cpp/CMakeScripts.txt</entry>
     <entry key="generate files command">cmake -P CMakeScripts.txt</entry>
     <entry key="generate project template">templates/cpp/CMakeLists.txt</entry>
-    <entry key="generate project command">mkdir build; cd build; cmake -G Xcode ..;/Applications/AppCode.app/Contents/MacOS/appcode ~/Contest/cmake/Build/Contest.xcodeproj</entry>
+    <entry key="generate project command">sh project.sh</entry>
 </properties>

@@ -2,6 +2,7 @@ package ua.alcash.ui;
 
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
+import ua.alcash.generation.Generator;
 import ua.alcash.util.AbstractActionWithInteger;
 
 import javax.swing.*;
@@ -41,10 +42,16 @@ public class ProblemSetPane extends JTabbedPane {
         // adds popup menu to tabs with options to close or delete a problem
         final JPopupMenu singleTabPopupMenu = new JPopupMenu();
         JMenuItem closeProblem = new JMenuItem("Close problem");
-        closeProblem.addActionListener(event -> closeProblem(getSelectedIndex(), false));
+        closeProblem.addActionListener(event -> {
+            closeProblem(getSelectedIndex(), false);
+            Generator.generate(workspaceDirectory, problems, true);
+        });
         singleTabPopupMenu.add(closeProblem);
         JMenuItem deleteProblem = new JMenuItem("Delete problem");
-        deleteProblem.addActionListener(event -> closeProblem(getSelectedIndex(), true));
+        deleteProblem.addActionListener(event -> {
+            closeProblem(getSelectedIndex(), true);
+            Generator.generate(workspaceDirectory, problems, true);
+        });
         singleTabPopupMenu.add(deleteProblem);
 
         addMouseListener(new MouseAdapter() {
@@ -109,7 +116,7 @@ public class ProblemSetPane extends JTabbedPane {
             addProblem(problem);
         }
         setSelectedIndex(firstProblemIndex);
-        // run gerenation script if not adding a contest
+        Generator.generate(workspaceDirectory, problems, true);
     }
 
     private void writeProblemToDisk(Problem problem) {
@@ -129,6 +136,7 @@ public class ProblemSetPane extends JTabbedPane {
             ((ProblemPanel)getComponentAt(i)).updateProblemFromInterface();
             writeProblemToDisk(problems.get(i));
         }
+        Generator.generate(workspaceDirectory, problems, false);
     }
 
     private void closeProblem(int index, boolean delete) {
@@ -148,6 +156,9 @@ public class ProblemSetPane extends JTabbedPane {
     }
 
     void closeAllProblems(boolean delete) {
-        while (!problems.isEmpty()) closeProblem(0, delete);
+        while (!problems.isEmpty()) {
+            closeProblem(0, delete);
+        }
+        Generator.generate(workspaceDirectory, problems, true);
     }
 }

@@ -29,7 +29,7 @@ public class MainFrame extends JFrame {
         problemsPane = new ProblemSetPane(this);
         if (!Configuration.load(problemsPane.workspaceDirectory)) {
             JOptionPane.showMessageDialog(this,
-                    "Current directory doesn't contain configuration file "
+                    "Current directory doesn't contain valid configuration file "
                             + Configuration.CONFIGURATION_FILE_NAME
                             + "\nPlease, select another directory.",
                     Configuration.PROJECT_NAME,
@@ -170,11 +170,11 @@ public class MainFrame extends JFrame {
 
     private void confirmAndExit() {
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Clear workspace before exiting?",
+                "Keep the workspace content on the disk?",
                 Configuration.PROJECT_NAME,
                 JOptionPane.YES_NO_CANCEL_OPTION);
         if (confirm != JOptionPane.CANCEL_OPTION) {
-            if (confirm == JOptionPane.YES_OPTION) {
+            if (confirm == JOptionPane.NO_OPTION) {
                 problemsPane.closeAllProblems(true);
             }
             chromeListener.stop();
