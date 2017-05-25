@@ -100,7 +100,7 @@ public class NewProblemDialog extends JDialog {
         }
         Problem problem = new Problem(problemId, problemNameField.getText(),
                 (String) platformComboBox.getSelectedItem(), contestNameField.getText());
-        parent.problemsPane.addProblems(Collections.singletonList(problem));
+        parent.receiveProblems(Collections.singletonList(problem));
         closeDialog();
     }
 
@@ -121,12 +121,10 @@ public class NewProblemDialog extends JDialog {
         @Override
         protected void done() {
             try {
-                dialog.parent.problemsPane.addProblems(get());
+                dialog.parent.receiveProblems(get());
                 dialog.closeDialog();
             } catch (ExecutionException exception) {
-                JOptionPane.showMessageDialog(dialog, exception.getMessage(),
-                        Configuration.PROJECT_NAME,
-                        JOptionPane.ERROR_MESSAGE);
+                dialog.parent.receiveError(exception.getMessage());
             } catch (Exception exception) {
             } finally {
                 dialog.restoreButtonStateAfterParsing();

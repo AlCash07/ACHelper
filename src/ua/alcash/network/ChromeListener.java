@@ -1,8 +1,7 @@
 package ua.alcash.network;
 
-import ua.alcash.Configuration;
 import ua.alcash.Problem;
-import ua.alcash.ui.ProblemSetPane;
+import ua.alcash.ProblemsReceiver;
 import ua.alcash.parsing.ParseManager;
 
 import javax.swing.*;
@@ -18,12 +17,11 @@ import java.util.Collection;
  * Created by oleksandr.bacherikov on 5/11/17.
  */
 public class ChromeListener implements Runnable {
-    ProblemSetPane parent;
-
+    private ProblemsReceiver receiver;
     private ServerSocket serverSocket;
 
-    public ChromeListener(ProblemSetPane parent) {
-        this.parent = parent;
+    public ChromeListener(ProblemsReceiver receiver) {
+        this.receiver = receiver;
     }
 
     public void start(String portString) {
@@ -36,52 +34,41 @@ public class ChromeListener implements Runnable {
             serverSocket = new ServerSocket(port);
             new Thread(this, "ChromeListenerThread").start();
         } catch (IOException exception) {
-            JOptionPane.showMessageDialog(parent,
-                    "Could not create serverSocket for Chrome parser," +
-                            "probably another CHelper-eligible project is running.",
-                    Configuration.PROJECT_NAME,
-                    JOptionPane.ERROR_MESSAGE);
+            receiver.receiveError("Could not create serverSocket for Chrome parser, " +
+                            "probably another CHelper-eligible project is running.");
         }
     }
 
     public void stop() {
         try {
             serverSocket.close();
-        } catch (Throwable exception) {
+        } catch (Throwable ignored) {
         }
     }
 
     @Override
     public void run() {
-        while (true) {
-            try {
-                if (serverSocket.isClosed())
-                    return;
-                Socket socket = serverSocket.accept();
+        while (true) try {
+            if (serverSocket.isClosed())
+                return;
+            try (Socket socket = serverSocket.accept()) {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(socket.getInputStream(), "UTF-8"));
+                while (!reader.readLine().isEmpty());
+                final String platformId = reader.readLine();
+                StringBuilder builder = new StringBuilder();
+                String s;
+                while ((s = reader.readLine()) != null)
+                    builder.append(s).append('\n');
+                final String page = builder.toString();
                 try {
-                    BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(socket.getInputStream(), "UTF-8"));
-                    while (!reader.readLine().isEmpty());
-                    final String platformId = reader.readLine();
-                    StringBuilder builder = new StringBuilder();
-                    String s;
-                    while ((s = reader.readLine()) != null)
-                        builder.append(s).append('\n');
-                    final String page = builder.toString();
-                    try {
-                        final Collection<Problem> problems = ParseManager.parseProblemsFromHtml(platformId, page);
-                        SwingUtilities.invokeLater(() -> parent.addProblems(problems));
-                    } catch (ParserConfigurationException exception) {
-                        SwingUtilities.invokeLater(() ->
-                            JOptionPane.showMessageDialog(parent, getErrorMessage(platformId),
-                                    Configuration.PROJECT_NAME,
-                                    JOptionPane.ERROR_MESSAGE));
-                    }
-                } finally {
-                    socket.close();
+                    final Collection<Problem> problems = ParseManager.parseProblemsFromHtml(platformId, page);
+                    SwingUtilities.invokeLater(() -> receiver.receiveProblems(problems));
+                } catch (ParserConfigurationException exception) {
+                    SwingUtilities.invokeLater(() -> receiver.receiveError(getErrorMessage(platformId)));
                 }
-            } catch (Throwable exception) {
             }
+        } catch (Throwable ignored) {
         }
     }
 

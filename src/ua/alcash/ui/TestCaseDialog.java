@@ -131,7 +131,7 @@ public class TestCaseDialog extends JDialog {
         }
         if (!somethingChanged) {
             if (testCase.getSolved() != wasSolved) testCase.flipSolved();
-            dispose();
         }
+        dispose();
     }
 }

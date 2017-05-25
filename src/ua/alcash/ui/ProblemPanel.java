@@ -202,7 +202,7 @@ public class ProblemPanel extends JPanel {
     void updateProblemFromInterface() {
         try {
             timeLimitSpinner.commitEdit();
-        } catch (ParseException exception) {
+        } catch (ParseException ignored) {
         }
         problem.setTimeLimit((Double) timeLimitSpinner.getValue());
         problem.setMemoryLimit((Double) memoryLimitSpinner.getValue());

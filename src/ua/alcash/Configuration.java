@@ -23,16 +23,15 @@ public class Configuration {
     static public String getExtension(String key) { return get("extension " + key); }
 
     static public boolean load(String workspaceDirectory) {
-        boolean success = true;
         try {
             FileInputStream input = new FileInputStream(
                     workspaceDirectory + java.io.File.separator + CONFIGURATION_FILE_NAME);
             Properties loadedProperties = new Properties();
             loadedProperties.loadFromXML(input);
             properties = loadedProperties;
+            return true;
         } catch (Throwable exception) {
-            success = false;
+            return false;
         }
-        return success;
     }
 }

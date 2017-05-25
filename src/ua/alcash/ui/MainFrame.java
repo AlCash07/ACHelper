@@ -1,17 +1,25 @@
 package ua.alcash.ui;
 
 import ua.alcash.Configuration;
+import ua.alcash.Problem;
+import ua.alcash.filesystem.WorkspaceManager;
+import ua.alcash.ProblemsReceiver;
 import ua.alcash.network.ChromeListener;
 import ua.alcash.parsing.ParseManager;
+import ua.alcash.util.AbstractActionWithInteger;
 
 import javax.swing.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
+import java.io.IOException;
+import java.util.Collection;
 
 /**
  * Created by oleksandr.bacherikov on 5/9/17.
  */
-public class MainFrame extends JFrame {
+public class MainFrame extends JFrame implements ProblemsReceiver {
+    private JPanel rootPanel;
+    private JTabbedPane problemsPane;
+
     private JMenuItem newContest;
     private JMenuItem newProblem;
     private JMenuItem saveWorkspace;
@@ -19,31 +27,14 @@ public class MainFrame extends JFrame {
     private JMenuItem clearWorkspace;
     private JMenuItem exitApp;
 
-    ProblemSetPane problemsPane;
     private NewProblemDialog problemDialog = new NewProblemDialog(this);
     private NewContestDialog contestDialog = new NewContestDialog(this);
 
+    private WorkspaceManager workspaceManager;
     private ChromeListener chromeListener;
 
     private MainFrame() throws InstantiationException {
-        problemsPane = new ProblemSetPane(this);
-        if (!Configuration.load(problemsPane.workspaceDirectory)) {
-            JOptionPane.showMessageDialog(this,
-                    "Current directory doesn't contain valid configuration file "
-                            + Configuration.CONFIGURATION_FILE_NAME
-                            + "\nPlease, select another directory.",
-                    Configuration.PROJECT_NAME,
-                    JOptionPane.WARNING_MESSAGE);
-            while (true) {
-                SelectionResult result = selectWorkspace();
-                if (result == SelectionResult.CANCEL) {
-                    throw new InstantiationException("Working directory wasn't provided.");
-                } else if (result == SelectionResult.SUCCESS) {
-                    break;
-                }
-            }
-        }
-
+        workspaceManager = new WorkspaceManager(this);
         setTitle(Configuration.PROJECT_NAME);
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -51,15 +42,16 @@ public class MainFrame extends JFrame {
                 confirmAndExit();
             }
         });
-        setContentPane(problemsPane);
+        setContentPane(rootPanel);
         createMainMenu();
+        createPopupMenu();
 
         // set system proxy if there is one
         try {
             System.setProperty("java.net.useSystemProxies", "true");
         } finally {
         }
-        chromeListener = new ChromeListener(problemsPane);
+        chromeListener = new ChromeListener(this);
         configure();
 
         pack();
@@ -68,10 +60,9 @@ public class MainFrame extends JFrame {
 
     private void configure() {
         ParseManager.configure();
+        ProblemPanel.configure();
         problemDialog.configure();
-        ProblemSetPane.configure();
         setupShortcuts();
-
         chromeListener.start(Configuration.get("CHelper port"));
     }
 
@@ -102,7 +93,12 @@ public class MainFrame extends JFrame {
         workspaceMenu.setText("Workspace");
 
         saveWorkspace.setText("Save to disk");
-        saveWorkspace.addActionListener(event -> problemsPane.updateProblemsOnDisk());
+        saveWorkspace.addActionListener(event -> {
+            for (int i = 0; i < problemsPane.getTabCount(); ++i) {
+                ((ProblemPanel) problemsPane.getComponentAt(i)).updateProblemFromInterface();
+            }
+            workspaceManager.updateProblemsOnDisk();
+        });
         workspaceMenu.add(saveWorkspace);
 
         clearWorkspace.setText("Delete problems");
@@ -112,14 +108,14 @@ public class MainFrame extends JFrame {
                     Configuration.PROJECT_NAME,
                     JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                problemsPane.closeAllProblems(true);
+                workspaceManager.closeAllProblems(true);
             }
         });
         workspaceMenu.add(clearWorkspace);
 
         switchWorkspace.setText("Switch");
         switchWorkspace.addActionListener(event -> {
-            if (selectWorkspace() == SelectionResult.SUCCESS)
+            if (workspaceManager.selectWorkspace() == JOptionPane.YES_OPTION)
                 configure();
         });
         workspaceMenu.add(switchWorkspace);
@@ -137,6 +133,37 @@ public class MainFrame extends JFrame {
         setJMenuBar(menuBar);
     }
 
+    private void createPopupMenu() {
+        // adds popup menu to tabs with options to close or delete a problem
+        final JPopupMenu singleTabPopupMenu = new JPopupMenu();
+        JMenuItem closeProblem = new JMenuItem("Close problem");
+        closeProblem.addActionListener(event -> closeProblem(false));
+        singleTabPopupMenu.add(closeProblem);
+        JMenuItem deleteProblem = new JMenuItem("Delete problem");
+        deleteProblem.addActionListener(event -> closeProblem(true));
+        singleTabPopupMenu.add(deleteProblem);
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent event) {
+                if (event.isPopupTrigger()) {
+                    doPop(event);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent event) {
+                if (event.isPopupTrigger()) {
+                    doPop(event);
+                }
+            }
+
+            private void doPop(MouseEvent event) {
+                singleTabPopupMenu.show(event.getComponent(), event.getX(), event.getY());
+            }
+        });
+    }
+
     private void setupShortcuts() {
         newContest.setAccelerator(Configuration.getShortcut("new contest"));
         newProblem.setAccelerator(Configuration.getShortcut("new problem"));
@@ -144,28 +171,53 @@ public class MainFrame extends JFrame {
         clearWorkspace.setAccelerator(Configuration.getShortcut("workspace delete problems"));
         switchWorkspace.setAccelerator(Configuration.getShortcut("workspace switch"));
         exitApp.setAccelerator(Configuration.getShortcut("exit"));
+
+        for (int index = 1; index <= 9; index++) {
+            problemsPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                    KeyStroke.getKeyStroke("alt " + index), "switch tab " + index);
+            problemsPane.getActionMap().put("switch tab " + index, new AbstractActionWithInteger(index) {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (problemsPane.getTabCount() >= getInteger()) {
+                        problemsPane.setSelectedIndex(getInteger() - 1);
+                    }
+                }
+            });
+        }
     }
 
-    private enum SelectionResult {SUCCESS, FAIL, CANCEL}
-
-    private SelectionResult selectWorkspace() {
-        JFileChooser fileChooser = new JFileChooser(problemsPane.workspaceDirectory);
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            String directory = fileChooser.getSelectedFile().getAbsolutePath();
-            if (!Configuration.load(directory)) {
-                JOptionPane.showMessageDialog(this,
-                        "Selected directory doesn't contain configuration file "
-                                + Configuration.CONFIGURATION_FILE_NAME,
-                        Configuration.PROJECT_NAME,
-                        JOptionPane.WARNING_MESSAGE);
-                return SelectionResult.FAIL;
+    @Override
+    public void receiveProblems(Collection<Problem> problems) {
+        int firstProblemIndex = problemsPane.getTabCount();
+        for (Problem problem : problems) {
+            try {
+                workspaceManager.addProblem(problem);
+                ProblemPanel panel = new ProblemPanel(this, problem);
+                problemsPane.addTab(problem.getProblemId(), panel);
+            } catch (IOException exception) {
+                receiveError(exception.getMessage());
             }
-            problemsPane.closeAllProblems(false);
-            problemsPane.workspaceDirectory = directory;
-            return SelectionResult.SUCCESS;
         }
-        return SelectionResult.CANCEL;
+        if (firstProblemIndex < problemsPane.getTabCount()) {
+            problemsPane.setSelectedIndex(firstProblemIndex);
+        }
+    }
+
+    @Override
+    public void receiveError(String message) {
+        JOptionPane.showMessageDialog(this, message,
+                Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void receiveWarning(String message) {
+        JOptionPane.showMessageDialog(this, message,
+                Configuration.PROJECT_NAME, JOptionPane.WARNING_MESSAGE);
+    }
+
+    private void closeProblem(boolean delete) {
+        int index = problemsPane.getSelectedIndex();
+        workspaceManager.closeProblem(index, delete);
+        problemsPane.removeTabAt(index);
     }
 
     private void confirmAndExit() {
@@ -173,10 +225,8 @@ public class MainFrame extends JFrame {
                 "Keep the workspace content on the disk?",
                 Configuration.PROJECT_NAME,
                 JOptionPane.YES_NO_CANCEL_OPTION);
-        if (confirm != JOptionPane.CANCEL_OPTION) {
-            if (confirm == JOptionPane.NO_OPTION) {
-                problemsPane.closeAllProblems(true);
-            }
+        if (confirm != JOptionPane.CANCEL_OPTION && confirm != JOptionPane.CLOSED_OPTION) {
+            workspaceManager.closeAllProblems(confirm == JOptionPane.NO_OPTION);
             chromeListener.stop();
             System.exit(0);
         }

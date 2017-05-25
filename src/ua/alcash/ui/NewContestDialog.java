@@ -1,6 +1,5 @@
 package ua.alcash.ui;
 
-import ua.alcash.Configuration;
 import ua.alcash.Problem;
 import ua.alcash.parsing.ParseManager;
 
@@ -122,13 +121,11 @@ public class NewContestDialog extends JDialog {
         @Override
         protected void done() {
             try {
-                dialog.parent.problemsPane.addProblems(get());
+                dialog.parent.receiveProblems(get());
                 dialog.closeDialog();
             } catch (ExecutionException exception) {
-                JOptionPane.showMessageDialog(dialog, exception.getMessage(),
-                        Configuration.PROJECT_NAME,
-                        JOptionPane.ERROR_MESSAGE);
-            } catch (Exception exception) {
+                dialog.parent.receiveError(exception.getMessage());
+            } catch (Exception ignored) {
             } finally {
                 dialog.toggleButtons(true);
             }
@@ -145,7 +142,7 @@ public class NewContestDialog extends JDialog {
         try {
             hourSpinner.commitEdit();
             minuteSpinner.commitEdit();
-        } catch (ParseException exception) {
+        } catch (ParseException ignored) {
         }
         calendar.set(Calendar.HOUR_OF_DAY, (Integer) hourSpinner.getValue());
         calendar.set(Calendar.MINUTE, (Integer) minuteSpinner.getValue());
@@ -153,7 +150,7 @@ public class NewContestDialog extends JDialog {
         calendar.set(Calendar.SECOND, new Random().nextInt(11) + 10);
         long delay = calendar.getTimeInMillis() - System.currentTimeMillis();
         if (delay < 0) {
-            delay += 24 * 60 * 60 * 1000;
+            delay += 24 * 60 * 60 * 1000;  // day in milliseconds
         }
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.schedule(() -> {

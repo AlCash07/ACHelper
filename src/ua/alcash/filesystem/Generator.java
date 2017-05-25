@@ -1,4 +1,4 @@
-package ua.alcash.generation;
+package ua.alcash.filesystem;
 
 import com.google.common.io.CharStreams;
 import ua.alcash.Configuration;
@@ -48,15 +48,9 @@ public class Generator {
         try {
             List<String> inputLines = Files.readAllLines(inputPath);
             ArrayList<String> outputLines = new ArrayList<>();
-            for (int i = 0; i < inputLines.size();) {
-                String line = inputLines.get(i);
-                String[] tokens = line.split("@");
-                for (int j = 1; j < tokens.length; j += 2) {
-                    tokens[j] = Configuration.get(tokens[j]);
-                }
-                outputLines.add(String.join("", tokens));
-                ++i;
-                if (line.equals(delimiter)) {
+            for (int i = 0; i < inputLines.size(); ++i) {
+                if (inputLines.get(i).equals(delimiter)) {
+                    ++i;
                     int last = i;
                     while (last < inputLines.size() && !inputLines.get(last).equals(delimiter)) {
                         ++last;
@@ -66,7 +60,13 @@ public class Generator {
                             outputLines.add(problem.substituteKeys(inputLines.get(j), false));
                         }
                     }
-                    i = last + 1;
+                    i = last;
+                } else {
+                    String[] tokens = inputLines.get(i).split("@");
+                    for (int j = 1; j < tokens.length; j += 2) {
+                        tokens[j] = Configuration.get(tokens[j]);
+                    }
+                    outputLines.add(String.join("", tokens));
                 }
             }
             Files.write(outputPath, outputLines);

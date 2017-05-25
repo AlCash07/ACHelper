@@ -70,7 +70,7 @@ public class Problem {
     private static final int checkerParamsBit = 7;
     private static final int testCasesBit = 8;  // test was added or removed
 
-    private int changesMask = (1 << 10) - 1;
+    private int changesMask = (1 << 9) - 1;
 
     public Problem(String problemId, String problemName, String platformId, String contestName) {
         this.problemId = problemId;
@@ -108,14 +108,16 @@ public class Problem {
 
     private String getValue(String key, boolean nameOnly) {
         switch (key) {
-            case "platform_id":
-                return platformId;
-            case "platform_name":
-                return ParseManager.getPlatformName(platformId);
             case "problem_id":
                 return problemId;
             case "problem_name":
                 return problemName;
+            case "platform_id":
+                return platformId;
+            case "platform_name":
+                return ParseManager.getPlatformName(platformId);
+            case "contest_name":
+                return contestName;
         }
         if (nameOnly) return Configuration.get(key);
         switch (key) {
