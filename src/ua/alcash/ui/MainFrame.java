@@ -107,9 +107,7 @@ public class MainFrame extends JFrame {
                     "Are you sure you want to delete all problem folders on disk?",
                     Configuration.PROJECT_NAME,
                     JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) {
-                workspaceManager.closeAllProblems(true);
-            }
+            workspaceManager.closeAllProblems(confirm == JOptionPane.YES_OPTION);
         });
         workspaceMenu.add(clearWorkspace);
 

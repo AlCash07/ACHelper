@@ -51,11 +51,13 @@ public class WorkspaceManager {
     }
 
     public void updateWorkspace(boolean problemSetChanged) {
-        try {
-            Generator.generate(workspaceDirectory, problemSyncs, problemSetChanged);
-        } catch (IOException exception) {
-            parent.receiveError(exception.getMessage());
-        }
+        new Thread(() -> {
+            try {
+                Generator.generate(workspaceDirectory, problemSyncs, problemSetChanged);
+            } catch (IOException exception) {
+                SwingUtilities.invokeLater(() -> parent.receiveError(exception.getMessage()));
+            }
+        }, "WorkspaceUpdateThread").start();
     }
 
     public ProblemSync addProblem(Problem newProblem) throws IOException {

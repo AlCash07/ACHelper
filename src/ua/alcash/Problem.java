@@ -51,7 +51,7 @@ public class Problem {
     private static final int customCheckerBit = 6;
     private static final int checkerParamsBit = 7;
 
-    private int changesMask = 0;
+    private int changesMask = (1 << 8) - 1;
 
     public Problem(String problemId, String problemName, String platformId, String contestName) {
         this.problemId = problemId;

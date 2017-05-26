@@ -74,13 +74,13 @@ int main(int argc, char* argv[]) {
 
     int answerCount = index;
     while (!ans.seekEof()) {
-        ans.readLong();
+        ans.readToken();
         ++answerCount;
     }
 
     int outputCount = index;
     while (!ouf.seekEof()) {
-        ouf.readLong();
+        ouf.readToken();
         ++outputCount;
     }
 

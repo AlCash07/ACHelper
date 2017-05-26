@@ -73,7 +73,7 @@ else()
     target_link_libraries(@problem_id@ tester)
     # create a file alongside the binary pointing to tests location
     add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
-        echo ${PROJECT_SOURCE_DIR}/${PROBLEM_DIR}/tests > $<TARGET_FILE_DIR:@problem_id@>/@problem_id@Path)
+        echo ${PROBLEM_DIR}/tests > $<TARGET_FILE_DIR:@problem_id@>/@problem_id@Path)
 endif()
 
 if(@custom_checker@)

@@ -1,6 +1,5 @@
 package ua.alcash.network;
 
-import org.jetbrains.annotations.Contract;
 import ua.alcash.Problem;
 import ua.alcash.parsing.ParseManager;
 import ua.alcash.ui.MainFrame;
@@ -71,7 +70,6 @@ public class ChromeListener implements Runnable {
         }
     }
 
-    @Contract(pure = true)
     private String getErrorMessage(String platformId) {
         String message = "Failed to parse message from CHelper Chrome extension.\n";
         if (platformId.isEmpty()) {
