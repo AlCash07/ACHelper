@@ -58,26 +58,27 @@ add_library(tester ${TEMPLATES_DIR}/tester.cpp)
 
 # problems
 
-set(DIR @problem_dir@)
+set(PROBLEM_DIR @problem_dir@)
 # make test files show up in IDE along with source file
-file(GLOB PROBLEM_FILES ${DIR}/source.cpp ${DIR}/limits.cpp ${DIR}/*.in ${DIR}/*.out ${DIR}/*.ans)
+file(GLOB PROBLEM_FILES ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/limits.cpp
+        ${PROBLEM_DIR}/*.in ${PROBLEM_DIR}/*.out ${PROBLEM_DIR}/*.ans)
 source_group("" FILES ${PROBLEM_FILES})
 
 if(@interactive@)
     # run problem solution with console I/O
-    add_executable(@problem_id@ ${PROBLEM_FILES} ${DIR}/main.cpp)
+    add_executable(@problem_id@ ${PROBLEM_FILES} ${PROBLEM_DIR}/main.cpp)
 else()
     add_executable(@problem_id@ ${PROBLEM_FILES})
     # link problem solution with tester library that will run it on all the tests
     target_link_libraries(@problem_id@ tester)
     # create a file alongside the binary pointing to tests location
     add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
-        echo ${PROJECT_SOURCE_DIR}/${DIR}/tests > $<TARGET_FILE_DIR:@problem_id@>/@problem_id@Path)
+        echo ${PROJECT_SOURCE_DIR}/${PROBLEM_DIR}/tests > $<TARGET_FILE_DIR:@problem_id@>/@problem_id@Path)
 endif()
 
 if(@custom_checker@)
     # custom checker target
-    set(CHECKER_FILE @problem_dir@/checker.cpp)
+    set(CHECKER_FILE {PROBLEM_DIR}/checker.cpp)
     configure_file(${CHECKERS_DIR}/checker.cpp ${CHECKER_FILE})
     source_group("" FILES ${CHECKER_FILE})
     add_executable(@problem_id@Checker ${CHECKER_FILE})

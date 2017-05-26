@@ -24,6 +24,8 @@ public class TestCaseDialog extends JDialog {
     private JButton discardButton;
     private JCheckBox solvedCheckBox;
 
+    private TestCase testCase;
+
     class UpdateListener implements DocumentListener {
         boolean updated = false;
 
@@ -43,18 +45,11 @@ public class TestCaseDialog extends JDialog {
     }
 
     private UpdateListener inputListener = new UpdateListener();
-    private UpdateListener outputListener = new UpdateListener();
-
-    private TestCase testCase;
-    private boolean wasSolved;
-
-    boolean saved = false;
+    private UpdateListener answerListener = new UpdateListener();
 
     TestCaseDialog(Frame parent, TestCase testCase) {
         super(parent, true);
         this.testCase = testCase;
-        wasSolved = testCase.getSolved();
-
         setTitle("Test case " + testCase.getName());
         setContentPane(rootPanel);
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -66,18 +61,17 @@ public class TestCaseDialog extends JDialog {
 
         inputTextArea.setText(testCase.getInput());
         expectedOutputTextArea.setText(testCase.getExpectedOutput());
-        expectedOutputTextArea.setEnabled(!testCase.getSolved());
         programOutputTextArea.setText(testCase.getProgramOutput());
         inputTextArea.getDocument().addDocumentListener(inputListener);
-        expectedOutputTextArea.getDocument().addDocumentListener(outputListener);
-        solvedCheckBox.setSelected(wasSolved);
+        expectedOutputTextArea.getDocument().addDocumentListener(answerListener);
 
-        saveButton.addActionListener(event -> saveTestCase());
+        saveButton.addActionListener(event -> saveAndClose());
         discardButton.addActionListener(event -> confirmAndClose());
         solvedCheckBox.addActionListener(event -> {
-            testCase.flipSolved();
-            expectedOutputTextArea.setText(testCase.getExpectedOutput());
-            expectedOutputTextArea.setEnabled(!testCase.getSolved());
+            boolean solved = solvedCheckBox.isSelected();
+            saveButton.setEnabled(somethingChanged());
+            expectedOutputTextArea.setText(solved ? testCase.getProgramOutput() : testCase.getExpectedOutput());
+            expectedOutputTextArea.setEnabled(!solved);
         });
         setupShortcuts();
 
@@ -98,7 +92,7 @@ public class TestCaseDialog extends JDialog {
                 Configuration.getShortcut("test case save"), "save");
         getRootPane().getActionMap().put("save", new AbstractAction() {
             @Override
-            public void actionPerformed(ActionEvent event) { saveTestCase(); }
+            public void actionPerformed(ActionEvent event) { dispose(); }
         });
 
         // when TAB is pressed, cycle textAreas instead of writing the \t
@@ -110,27 +104,36 @@ public class TestCaseDialog extends JDialog {
         programOutputTextArea.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
     }
 
-    private void saveTestCase() {
-        if (inputListener.updated) {
+    boolean inputChanged() { return inputListener.updated; }
+
+    boolean answerChanged() { return answerListener.updated; }
+
+    boolean markedSolved() { return solvedCheckBox.isSelected(); }
+
+    boolean somethingChanged() { return inputChanged() || answerChanged() || markedSolved(); }
+
+    private void saveAndClose() {
+        if (inputChanged()) {
             testCase.setInput(inputTextArea.getText());
         }
-        if (!testCase.getSolved() && outputListener.updated) {
+        if (!markedSolved() && answerChanged()) {
             testCase.setExpectedOutput(expectedOutputTextArea.getText());
         }
-        saved = true;
         dispose();
     }
 
     private void confirmAndClose() {
-        boolean somethingChanged = inputListener.updated || outputListener.updated || wasSolved != testCase.getSolved();
-        if (somethingChanged) {
+        if (somethingChanged()) {
             int confirmed = JOptionPane.showConfirmDialog(this,
                     "There are unsaved changes. Are you sure you want to discard them?",
-                    Configuration.PROJECT_NAME, JOptionPane.YES_NO_OPTION);
-            somethingChanged = (confirmed == JOptionPane.NO_OPTION);
-        }
-        if (!somethingChanged) {
-            if (testCase.getSolved() != wasSolved) testCase.flipSolved();
+                    Configuration.PROJECT_NAME,
+                    JOptionPane.YES_NO_OPTION);
+            if (confirmed == JOptionPane.NO_OPTION) {
+                return;
+            }
+            if (inputChanged()) inputListener.updated = false;
+            if (answerChanged()) answerListener.updated = false;
+            if (markedSolved()) solvedCheckBox.setSelected(false);
         }
         dispose();
     }

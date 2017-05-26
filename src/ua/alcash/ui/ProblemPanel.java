@@ -4,6 +4,7 @@ import net.egork.chelper.task.TestType;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
 import ua.alcash.TestCase;
+import ua.alcash.filesystem.ProblemSync;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -39,16 +40,16 @@ public class ProblemPanel extends JPanel {
     private JButton deleteButton;
 
     private JTable testsTable;
-    private TestsTableModel testsTableModel;  // used to notify testsTable about the testCaseSet changes
 
-    private Problem problem;
+    private ProblemSync problemSync;
 
-    ProblemPanel(Frame parentFrame, Problem problem) {
+    ProblemPanel(Frame parentFrame, ProblemSync problemSync) {
         this.parentFrame = parentFrame;
         setLayout(new GridLayout(1, 1));
         add(rootPanel);
 
-        this.problem = problem;
+        this.problemSync = problemSync;
+        Problem problem = problemSync.getProblem();
         problemName.setText(problem.getFullName());
         timeLimitSpinner.setModel(new SpinnerNumberModel(
                 problem.getTimeLimit(), 0, 9999, 1));
@@ -66,9 +67,8 @@ public class ProblemPanel extends JPanel {
         customCheckerCheckBox.setSelected(problem.getCustomChecker());
         checkerParamsField.setText(problem.getCheckerParams());
 
-        testsTableModel = new TestsTableModel(problem.getTestCaseSet());
         testsTable.setDefaultRenderer(String.class, new MultilineTableCellRenderer());
-        testsTable.setModel(testsTableModel);
+        testsTable.setModel(problemSync.getTableModel());
         testsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         ListSelectionListener listSelectionListener = event -> {
@@ -77,7 +77,7 @@ public class ProblemPanel extends JPanel {
             solvedButton.setEnabled(enable);
             skipButton.setEnabled(enable);
             upButton.setEnabled(enable && getSelectedIndex() > 0);
-            downButton.setEnabled(enable && getSelectedIndex() < testsTableModel.getRowCount() - 1);
+            downButton.setEnabled(enable && getSelectedIndex() < testsTable.getRowCount() - 1);
             deleteButton.setEnabled(enable);
         };
         testsTable.getSelectionModel().addListSelectionListener(listSelectionListener);
@@ -92,17 +92,12 @@ public class ProblemPanel extends JPanel {
 
         newButton.addActionListener(event -> newTestCase());
         editButton.addActionListener(event -> editTestCase());
-        solvedButton.addActionListener(event -> solvedTestCase());
-        skipButton.addActionListener(event -> skipTestCase());
+        solvedButton.addActionListener(event -> runAndCheck(() -> problemSync.setTestSolved(getSelectedIndex())));
+        skipButton.addActionListener(event -> runAndCheck(() -> problemSync.flipTestSkipped(getSelectedIndex())));
         upButton.addActionListener(event -> swapTestCases(getSelectedIndex() - 1));
         downButton.addActionListener(event -> swapTestCases(getSelectedIndex() + 1));
         deleteButton.addActionListener(event -> deleteTestCase());
         setupShortcuts();
-    }
-
-    static void configure() {
-        Problem.configure();
-        TestCase.configure();
     }
 
     private void setupShortcuts() {
@@ -140,44 +135,45 @@ public class ProblemPanel extends JPanel {
         return index;
     }
 
+    interface RunnableIO { void run() throws IOException; }
+
+    private void runAndCheck(RunnableIO f) {
+        try {
+            f.run();
+        } catch (IOException exception) {
+            JOptionPane.showMessageDialog(this, exception.getMessage(),
+                    Configuration.PROJECT_NAME,
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void newTestCase() {
-        TestCase newTestCase = new TestCase(problem.getNextTestName());
+        TestCase newTestCase = new TestCase(problemSync.getNextTestName());
         TestCaseDialog dialog = new TestCaseDialog(parentFrame, newTestCase);
         dialog.setVisible(true);
-        if (dialog.saved) {
-            problem.addTestCase(newTestCase);
-            testsTableModel.rowInserted();
+        if (dialog.somethingChanged()) {
+            runAndCheck(() -> problemSync.addTestCase(newTestCase));
         }
     }
 
     private void editTestCase() {
         int index = getSelectedIndex();
-        TestCase editedTestCase = problem.getTestCase(index);
+        TestCase editedTestCase = problemSync.getTestCase(index);
         TestCaseDialog dialog = new TestCaseDialog(parentFrame, editedTestCase);
         dialog.setVisible(true);
-        if (dialog.saved) {
-            testsTableModel.rowUpdated(index);
+        if (dialog.inputChanged()) {
+            runAndCheck(() -> problemSync.testInputChanged(index));
+        }
+        if (dialog.markedSolved()) {
+            runAndCheck(() -> problemSync.setTestSolved(index));
+        } else if (dialog.answerChanged()) {
+            runAndCheck(() -> problemSync.testAnswerChanged(index));
         }
     }
 
-    private void solvedTestCase() {
-        int index = getSelectedIndex();
-        problem.getTestCase(index).flipSolved();
-        testsTableModel.rowUpdated(index);
-    }
-
-    private void skipTestCase() {
-        int index = getSelectedIndex();
-        problem.getTestCase(index).flipSkipped();
-        testsTableModel.rowUpdated(index);
-    }
-
     private void swapTestCases(int swapIndex) {
-        int index = getSelectedIndex();
-        problem.swapTestCases(index, swapIndex);
+        runAndCheck(() -> problemSync.swapTestCases(getSelectedIndex(), swapIndex));
         testsTable.setRowSelectionInterval(swapIndex, swapIndex);
-        testsTableModel.rowUpdated(index);
-        testsTableModel.rowUpdated(swapIndex);
     }
 
     private void deleteTestCase() {
@@ -186,24 +182,17 @@ public class ProblemPanel extends JPanel {
                 Configuration.PROJECT_NAME,
                 JOptionPane.YES_NO_OPTION);
         if (confirmed == JOptionPane.YES_OPTION) {
-            int index = getSelectedIndex();
-            try {
-                problem.deleteTestCase(index);
-            } catch (IOException exception) {
-                JOptionPane.showMessageDialog(this,
-                        "Deleting test case caused an error:\n" + exception.getMessage(),
-                        Configuration.PROJECT_NAME,
-                        JOptionPane.ERROR_MESSAGE);
-            }
-            testsTableModel.rowDeleted(index);
+            runAndCheck(() -> problemSync.deleteTestCase(getSelectedIndex()));
         }
     }
 
     void updateProblemFromInterface() {
         try {
             timeLimitSpinner.commitEdit();
+            memoryLimitSpinner.commitEdit();
         } catch (ParseException ignored) {
         }
+        Problem problem = problemSync.getProblem();
         problem.setTimeLimit((Double) timeLimitSpinner.getValue());
         problem.setMemoryLimit((Double) memoryLimitSpinner.getValue());
         problem.setInputFile(inputFileField.getText());

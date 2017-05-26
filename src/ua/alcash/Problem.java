@@ -1,21 +1,11 @@
 package ua.alcash;
 
-import com.google.common.collect.Lists;
 import net.egork.chelper.task.StreamConfiguration;
 import net.egork.chelper.task.Task;
 import net.egork.chelper.task.TestType;
 import ua.alcash.parsing.ParseManager;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * Created by oleksandr.bacherikov on 5/8/17.
@@ -25,16 +15,12 @@ public class Problem {
     private static double defaultMemoryLimit;
     private static String defaultCheckerParams;
     private static String sampleTestName;
-    private static String manualTestName;
-    private static String testListFileName;
 
     static public void configure() {
         defaultTimeLimit = Double.parseDouble(Configuration.get("default time limit"));
         defaultMemoryLimit = Double.parseDouble(Configuration.get("default memory limit"));
         defaultCheckerParams = Configuration.get("default checker compiler options");
         sampleTestName = Configuration.get("test sample");
-        manualTestName = Configuration.get("test manual");
-        testListFileName = Configuration.get("test list file");
     }
 
     private String problemId;
@@ -55,10 +41,6 @@ public class Problem {
     private String checkerParams = defaultCheckerParams;
 
     private ArrayList<TestCase> testCases = new ArrayList<>();
-    private Set<String> testCaseNames = new HashSet<>();
-    private int manualTestIndex = 1;
-
-    private String directory;
 
     private static final int timeLimitBit = 0;
     private static final int memoryLimitBit = 1;
@@ -68,16 +50,14 @@ public class Problem {
     private static final int interactiveBit = 5;
     private static final int customCheckerBit = 6;
     private static final int checkerParamsBit = 7;
-    private static final int testCasesBit = 8;  // test was added or removed
 
-    private int changesMask = (1 << 9) - 1;
+    private int changesMask = 0;
 
     public Problem(String problemId, String problemName, String platformId, String contestName) {
         this.problemId = problemId;
         this.problemName = problemName;
         this.platformId = platformId;
         this.contestName = contestName;
-        directory = substituteKeys(Configuration.get("problem directory"), true);
     }
 
     public Problem(String platformId, Task task) {
@@ -99,14 +79,11 @@ public class Problem {
 
         for (int i = 0; i < task.tests.length; ++i) {
             String testName = sampleTestName + (i + 1);
-            testCaseNames.add(testName);
             testCases.add(new TestCase(testName, task.tests[i].input, task.tests[i].output));
         }
-
-        directory = substituteKeys(Configuration.get("problem directory"), true);
     }
 
-    private String getValue(String key, boolean nameOnly) {
+    public String getValue(String key, boolean nameOnly) {
         switch (key) {
             case "problem_id":
                 return problemId;
@@ -121,8 +98,6 @@ public class Problem {
         }
         if (nameOnly) return Configuration.get(key);
         switch (key) {
-            case "problem_dir":
-                return directory;
             case "time_limit":
                 return String.valueOf(timeLimit);
             case "memory_limit":
@@ -165,14 +140,6 @@ public class Problem {
             default:
                 return Configuration.get(key);
         }
-    }
-
-    public String substituteKeys(String input, boolean namesOnly) {
-        String[] tokens = input.split("@");
-        for (int i = 1; i < tokens.length; i += 2) {
-            tokens[i] = getValue(tokens[i], namesOnly);
-        }
-        return String.join("", tokens);
     }
 
     public String getProblemId() { return problemId; }
@@ -230,76 +197,12 @@ public class Problem {
         checkerParams = value;
     }
 
-    public String getNextTestName() {
-        while (testCaseNames.contains(manualTestName + manualTestIndex)) {
-            ++manualTestIndex;
-        }
-        return manualTestName + manualTestIndex;
-    }
-
-    public TestCase getTestCase(int index) { return testCases.get(index); }
-
-    public void addTestCase(TestCase testCase) {
-        changesMask |= 1 << testCasesBit;
-        testCases.add(testCase);
-        testCaseNames.add(testCase.getName());
-    }
-
-    public void swapTestCases(int index1, int index2) {
-        Collections.swap(testCases, index1, index2);
-    }
-
-    public void deleteTestCase(int index) throws IOException {
-        changesMask |= 1 << testCasesBit;
-        testCases.get(index).deleteFromDisk(directory);
-        testCaseNames.remove(testCases.get(index).getName());
-        testCases.remove(index);
-    }
-
     public ArrayList<TestCase> getTestCaseSet() { return testCases; }
 
-    public String getDirectory() { return directory; }
-
-    public void writeToDisk(String workspaceDirectory) throws IOException {
-        Charset utf8 = StandardCharsets.UTF_8;
-        Path problemPath = Paths.get(workspaceDirectory, directory);
-        Files.createDirectories(problemPath);
-        Path testListFile = Paths.get(problemPath.toString(), testListFileName);
-        if (Files.exists(testListFile)) {
-            Stream<String> lines = Files.lines(testListFile, utf8);
-            if (lines.anyMatch(line -> {
-                String[] tokens = line.split(" ");
-                return tokens.length > 1 && (tokens[1].equals("RUNNING") || tokens[1].equals("PENDING"));
-            })) {
-                throw new IOException("Cannot write tests to disk while testing is in progress.");
-            }
-        }
-        Files.write(testListFile, Lists.transform(testCases,
-                testCase -> String.join(" ", testCase.getName(), testCase.getExecutionResults(" "))),
-                utf8);
-        for (TestCase testCase : testCases) {
-            testCase.writeToDisk(problemPath.toString());
-        }
-    }
-
-    public void deleteFromDisk(String workspaceDirectory) throws IOException {
-        Files.walkFileTree(Paths.get(workspaceDirectory, directory), new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                Files.delete(dir);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-    }
-
     public boolean projectRegenerationRequired() {
-        return (changesMask & (1 << interactiveBit | 1 << customCheckerBit | 1 << testCasesBit)) > 0
+        return (changesMask & (1 << interactiveBit | 1 << customCheckerBit)) > 0
                 || (customChecker && (changesMask & (1 << checkerParamsBit)) > 0);
     }
+
+    public void markUnchanged() { changesMask = 0; }
 }

@@ -1,13 +1,5 @@
 package ua.alcash;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-
 /**
  * Created by oleksandr.bacherikov on 5/8/17.
  */
@@ -15,26 +7,11 @@ public class TestCase {
     private final static String UNKNOWN_KEY = "UNKNOWN";
     private final static String SKIPPED_KEY = "SKIPPED";
 
-    private static String inputExtension;
-    private static String expectedOutputExtension;
-    private static String programOutputExtension;
-
-    public static void configure() {
-        inputExtension = "." + Configuration.getExtension("input");
-        expectedOutputExtension = "." + Configuration.getExtension("expected output");
-        programOutputExtension = "." + Configuration.getExtension("program output");
-    }
-
     private String name;
     private String input = "";
     private String expectedOutput = "";
     private String programOutput = "";
     private String[] executionResults = new String[] {UNKNOWN_KEY};
-
-    private boolean skipped = false;
-    private boolean modifiedInput = false;
-    private boolean modifiedOutput = false;
-    private boolean solved = false;
 
     public TestCase(String name) { this.name = name; }
 
@@ -42,72 +19,27 @@ public class TestCase {
         this.name = name;
         this.input = input;
         this.expectedOutput = output;
-        modifiedInput = true;
-        modifiedOutput = true;
     }
 
     public String getName() { return name; }
 
     public String getInput() { return input; }
+    public void setInput(String value) { input = value; }
 
-    public void setInput(String value) {
-        input = value;
-        modifiedInput = true;
-    }
-
-    public String getExpectedOutput() { return solved ? programOutput : expectedOutput; }
-
-    public void setExpectedOutput(String value) {
-        expectedOutput = value;
-        modifiedOutput = true;
-    }
+    public String getExpectedOutput() { return expectedOutput; }
+    public void setExpectedOutput(String value) { expectedOutput = value; }
 
     public String getProgramOutput() { return programOutput; }
-
     public void setProgramOutput(String value) { programOutput = value; }
 
-    public String getExecutionResults(String delimiter) {
-        if (skipped) {
-            return SKIPPED_KEY;
-        }
-        if (executionResults.length == 1 && executionResults[0].equals(SKIPPED_KEY)) {
-            return UNKNOWN_KEY;
-        }
-        return String.join(delimiter, executionResults);
-    }
-
+    public String getExecutionResults(String delimiter) { return String.join(delimiter, executionResults); }
     public void setExecutionResults(String value) { executionResults = value.split(" ", 2); }
 
-    public void flipSkipped() { skipped = !skipped; }
-
-    public boolean getSolved() { return solved; }
-
-    public void flipSolved() { solved = !solved; }
-
-    void writeToDisk(String problemPath) throws IOException {
-        Charset utf8 = StandardCharsets.UTF_8;
-        if (modifiedInput) {
-            Path inputFile = Paths.get(problemPath, name + inputExtension);
-            Files.write(inputFile, Collections.singletonList(input), utf8);
-            modifiedInput = false;
+    public void flipSkipped() {
+        if (executionResults.length == 1 && executionResults[0].equals(SKIPPED_KEY)) {
+            executionResults[0] = UNKNOWN_KEY;
+        } else {
+            executionResults = new String[] {SKIPPED_KEY};
         }
-        Path expectedOutputFile = Paths.get(problemPath, name + expectedOutputExtension);
-        Path programOutputFile = Paths.get(problemPath, name + programOutputExtension);
-        if (!Files.exists(programOutputFile)) {
-            Files.createFile(programOutputFile);
-        }
-        if (solved) {
-            Files.copy(programOutputFile, expectedOutputFile);
-            solved = false;
-        } else if (modifiedOutput) {
-            Files.write(expectedOutputFile, Collections.singletonList(expectedOutput), utf8);
-        }
-        modifiedOutput = false;
-    }
-
-    void deleteFromDisk(String problemPath) throws IOException {
-        Files.delete(Paths.get(problemPath, name + inputExtension));
-        Files.delete(Paths.get(problemPath, name + expectedOutputExtension));
-        Files.delete(Paths.get(problemPath, name + programOutputExtension));
     }
 }

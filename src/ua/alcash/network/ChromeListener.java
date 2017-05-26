@@ -1,8 +1,9 @@
 package ua.alcash.network;
 
+import org.jetbrains.annotations.Contract;
 import ua.alcash.Problem;
-import ua.alcash.ProblemsReceiver;
 import ua.alcash.parsing.ParseManager;
+import ua.alcash.ui.MainFrame;
 
 import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
@@ -17,12 +18,10 @@ import java.util.Collection;
  * Created by oleksandr.bacherikov on 5/11/17.
  */
 public class ChromeListener implements Runnable {
-    private ProblemsReceiver receiver;
+    private MainFrame receiver;
     private ServerSocket serverSocket;
 
-    public ChromeListener(ProblemsReceiver receiver) {
-        this.receiver = receiver;
-    }
+    public ChromeListener(MainFrame receiver) { this.receiver = receiver; }
 
     public void start(String portString) {
         stop();
@@ -72,6 +71,7 @@ public class ChromeListener implements Runnable {
         }
     }
 
+    @Contract(pure = true)
     private String getErrorMessage(String platformId) {
         String message = "Failed to parse message from CHelper Chrome extension.\n";
         if (platformId.isEmpty()) {

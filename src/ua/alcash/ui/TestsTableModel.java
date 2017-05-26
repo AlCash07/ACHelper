@@ -13,7 +13,7 @@ public class TestsTableModel extends AbstractTableModel {
     private final String[] columnNames = {"Input", "Expected output", "Program output", "Result"};
     private final Class[] columnClasses = {String.class, String.class, String.class, String.class};
 
-    TestsTableModel(ArrayList<TestCase> testCases) { this.testCases = testCases; }
+    public TestsTableModel(ArrayList<TestCase> testCases) { this.testCases = testCases; }
 
     @Override
     public int getRowCount() { return testCases.size(); }
@@ -43,9 +43,9 @@ public class TestsTableModel extends AbstractTableModel {
         }
     }
 
-    void rowUpdated(int index) { fireTableRowsUpdated(index, index); }
+    public void rowUpdated(int index) { fireTableRowsUpdated(index, index); }
 
-    void rowInserted() { fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1); }
+    public void rowInserted() { fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1); }
 
-    void rowDeleted(int index) { fireTableRowsDeleted(index, index); }
+    public void rowDeleted(int index) { fireTableRowsDeleted(index, index); }
 }

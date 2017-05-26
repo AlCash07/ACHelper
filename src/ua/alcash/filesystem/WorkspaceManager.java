@@ -15,7 +15,7 @@ public class WorkspaceManager {
     private MainFrame parent;
 
     private String workspaceDirectory = System.getProperty("user.dir");
-    private ArrayList<Problem> problems = new ArrayList<>();
+    private ArrayList<ProblemSync> problemSyncs = new ArrayList<>();
 
     public WorkspaceManager(MainFrame parent) throws InstantiationException {
         this.parent = parent;
@@ -50,47 +50,41 @@ public class WorkspaceManager {
         return JOptionPane.CLOSED_OPTION;
     }
 
-    public void updateProblemsOnDisk() {
-        for (Problem problem : problems) {
-            try {
-                problem.writeToDisk(workspaceDirectory);
-            } catch (IOException ignored) {
-            }
+    public void updateWorkspace(boolean problemSetChanged) {
+        try {
+            Generator.generate(workspaceDirectory, problemSyncs, problemSetChanged);
+        } catch (IOException exception) {
+            parent.receiveError(exception.getMessage());
         }
-        Generator.generate(workspaceDirectory, problems, false);
     }
 
-    public void addProblem(Problem newProblem) throws IOException {
-        for (Problem problem : problems) {
-            if (problem.getDirectory().equals(newProblem.getDirectory())) {
-                throw new IOException("Problem with such directory already exists: " + newProblem.getDirectory());
+    public ProblemSync addProblem(Problem newProblem) throws IOException {
+        ProblemSync newProblemSync = new ProblemSync(workspaceDirectory, newProblem);
+        for (ProblemSync problemSync : problemSyncs) {
+            if (problemSync.getDirectory().equals(newProblemSync.getDirectory())) {
+                throw new IOException("Problem with such directory already exists: " + problemSync.getDirectory());
             }
         }
-        newProblem.writeToDisk(workspaceDirectory);
-        problems.add(newProblem);
+        newProblemSync.initialize();
+        problemSyncs.add(newProblemSync);
+        return newProblemSync;
     }
 
     public void closeProblem(int index, boolean delete) {
-        closeProblemImpl(0, delete);
-        Generator.generate(workspaceDirectory, problems, true);
+        if (delete) {
+            try {
+                problemSyncs.get(index).deleteFromDisk();
+            } catch (IOException exception) {
+                parent.receiveError("Deleting folder " + problemSyncs.get(index).getDirectory() + " caused an error:\n"
+                        + exception.getMessage());
+            }
+        }
+        problemSyncs.remove(index);
     }
 
     public void closeAllProblems(boolean delete) {
-        while (!problems.isEmpty()) {
-            closeProblemImpl(0, delete);
+        while (!problemSyncs.isEmpty()) {
+            closeProblem(0, delete);
         }
-        Generator.generate(workspaceDirectory, problems, true);
-    }
-
-    private void closeProblemImpl(int index, boolean delete) {
-        if (delete) {
-            try {
-                problems.get(index).deleteFromDisk(workspaceDirectory);
-            } catch (IOException exception) {
-                parent.receiveError("Deleting folder " + problems.get(index).getDirectory() + " caused an error:\n"
-                                + exception.getMessage());
-            }
-        }
-        problems.remove(index);
     }
 }

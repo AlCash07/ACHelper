@@ -2,8 +2,8 @@ package ua.alcash.ui;
 
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
+import ua.alcash.filesystem.ProblemSync;
 import ua.alcash.filesystem.WorkspaceManager;
-import ua.alcash.ProblemsReceiver;
 import ua.alcash.network.ChromeListener;
 import ua.alcash.parsing.ParseManager;
 import ua.alcash.util.AbstractActionWithInteger;
@@ -16,7 +16,7 @@ import java.util.Collection;
 /**
  * Created by oleksandr.bacherikov on 5/9/17.
  */
-public class MainFrame extends JFrame implements ProblemsReceiver {
+public class MainFrame extends JFrame {
     private JPanel rootPanel;
     private JTabbedPane problemsPane;
 
@@ -60,7 +60,7 @@ public class MainFrame extends JFrame implements ProblemsReceiver {
 
     private void configure() {
         ParseManager.configure();
-        ProblemPanel.configure();
+        ProblemSync.configure();
         problemDialog.configure();
         setupShortcuts();
         chromeListener.start(Configuration.get("CHelper port"));
@@ -97,7 +97,7 @@ public class MainFrame extends JFrame implements ProblemsReceiver {
             for (int i = 0; i < problemsPane.getTabCount(); ++i) {
                 ((ProblemPanel) problemsPane.getComponentAt(i)).updateProblemFromInterface();
             }
-            workspaceManager.updateProblemsOnDisk();
+            workspaceManager.updateWorkspace(false);
         });
         workspaceMenu.add(saveWorkspace);
 
@@ -115,8 +115,10 @@ public class MainFrame extends JFrame implements ProblemsReceiver {
 
         switchWorkspace.setText("Switch");
         switchWorkspace.addActionListener(event -> {
-            if (workspaceManager.selectWorkspace() == JOptionPane.YES_OPTION)
+            if (workspaceManager.selectWorkspace() == JOptionPane.YES_OPTION) {
+                problemsPane.removeAll();
                 configure();
+            }
         });
         workspaceMenu.add(switchWorkspace);
 
@@ -186,13 +188,12 @@ public class MainFrame extends JFrame implements ProblemsReceiver {
         }
     }
 
-    @Override
     public void receiveProblems(Collection<Problem> problems) {
         int firstProblemIndex = problemsPane.getTabCount();
         for (Problem problem : problems) {
             try {
-                workspaceManager.addProblem(problem);
-                ProblemPanel panel = new ProblemPanel(this, problem);
+                ProblemSync problemSync = workspaceManager.addProblem(problem);
+                ProblemPanel panel = new ProblemPanel(this, problemSync);
                 problemsPane.addTab(problem.getProblemId(), panel);
             } catch (IOException exception) {
                 receiveError(exception.getMessage());
@@ -201,9 +202,9 @@ public class MainFrame extends JFrame implements ProblemsReceiver {
         if (firstProblemIndex < problemsPane.getTabCount()) {
             problemsPane.setSelectedIndex(firstProblemIndex);
         }
+        workspaceManager.updateWorkspace(true);
     }
 
-    @Override
     public void receiveError(String message) {
         JOptionPane.showMessageDialog(this, message,
                 Configuration.PROJECT_NAME, JOptionPane.ERROR_MESSAGE);
@@ -218,6 +219,7 @@ public class MainFrame extends JFrame implements ProblemsReceiver {
         int index = problemsPane.getSelectedIndex();
         workspaceManager.closeProblem(index, delete);
         problemsPane.removeTabAt(index);
+        workspaceManager.updateWorkspace(true);
     }
 
     private void confirmAndExit() {

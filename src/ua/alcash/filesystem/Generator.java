@@ -2,9 +2,7 @@ package ua.alcash.filesystem;
 
 import com.google.common.io.CharStreams;
 import ua.alcash.Configuration;
-import ua.alcash.Problem;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,30 +16,26 @@ import java.util.List;
 /**
  * Created by oleksandr.bacherikov on 5/23/17.
  */
-public class Generator {
-    public static void generate(String directory, Collection<Problem> problems, boolean project) {
+class Generator {
+    static void generate(String directory, Collection<ProblemSync> problemSyncs, boolean project) throws IOException {
         if (!project) {
-            for (Problem problem : problems) {
-                project = project || problem.projectRegenerationRequired();
+            for (ProblemSync problemSync : problemSyncs) {
+                project = project || problemSync.projectRegenerationRequired();
             }
         }
-        generateFiles(directory, problems);
+        configureFile(directory, Configuration.get("generate files template"), problemSyncs);
+        executeCommand(directory, Configuration.get("generate files command"));
         if (project) {
-            generateProject(directory, problems);
+            configureFile(directory, Configuration.get("generate project template"), problemSyncs);
+            executeCommand(directory, Configuration.get("generate project command"));
+        }
+        for (ProblemSync problemSync : problemSyncs) {
+            problemSync.markUnchanged();
         }
     }
 
-    private static void generateFiles(String directory, Collection<Problem> problems) {
-        configureFile(directory, Configuration.get("generate files template"), problems);
-        executeCommand(directory, Configuration.get("generate files command"));
-    }
-
-    private static void generateProject(String directory, Collection<Problem> problems) {
-        configureFile(directory, Configuration.get("generate project template"), problems);
-        executeCommand(directory, Configuration.get("generate project command"));
-    }
-
-    private static void configureFile(String directory, String templatePath, Collection<Problem> problems) {
+    private static void configureFile(String directory, String templatePath, Collection<ProblemSync> problemSyncs)
+            throws IOException {
         String delimiter = Configuration.get("problems delimiter");
         Path inputPath = Paths.get(templatePath);
         Path outputPath = Paths.get(directory, inputPath.getFileName().toString());
@@ -55,9 +49,9 @@ public class Generator {
                     while (last < inputLines.size() && !inputLines.get(last).equals(delimiter)) {
                         ++last;
                     }
-                    for (Problem problem : problems) {
+                    for (ProblemSync problemSync : problemSyncs) {
                         for (int j = i; j < last; ++j) {
-                            outputLines.add(problem.substituteKeys(inputLines.get(j), false));
+                            outputLines.add(problemSync.substituteKeys(inputLines.get(j), false));
                         }
                     }
                     i = last;
@@ -71,24 +65,14 @@ public class Generator {
             }
             Files.write(outputPath, outputLines);
         } catch (IOException exception) {
-            JOptionPane.showMessageDialog(null,
-                    outputPath.getFileName() + " file generation failed:\n" + exception.getMessage(),
-                    Configuration.PROJECT_NAME,
-                    JOptionPane.ERROR_MESSAGE);
+            throw new IOException(outputPath.getFileName() + " file generation failed:\n" + exception.getMessage());
         }
     }
 
-    private static void executeCommand(String directory, String command) {
-        try {
-            Runtime runtime = Runtime.getRuntime();
-            Process process = runtime.exec(command, null, new File(directory));
-            System.out.println(CharStreams.toString(new InputStreamReader(process.getInputStream())));
-            System.err.println(CharStreams.toString(new InputStreamReader(process.getErrorStream())));
-        } catch (IOException exception) {
-            JOptionPane.showMessageDialog(null,
-                    "Failed to execute command " + command + "\n" + exception.getMessage(),
-                    Configuration.PROJECT_NAME,
-                    JOptionPane.ERROR_MESSAGE);
-        }
+    private static void executeCommand(String directory, String command) throws IOException {
+        Runtime runtime = Runtime.getRuntime();
+        Process process = runtime.exec(command, null, new File(directory));
+        System.out.println(CharStreams.toString(new InputStreamReader(process.getInputStream())));
+        System.err.println(CharStreams.toString(new InputStreamReader(process.getErrorStream())));
     }
 }
