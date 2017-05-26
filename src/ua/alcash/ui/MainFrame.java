@@ -4,7 +4,6 @@ import ua.alcash.Configuration;
 import ua.alcash.Problem;
 import ua.alcash.filesystem.ProblemSync;
 import ua.alcash.filesystem.WorkspaceManager;
-import ua.alcash.network.ChromeListener;
 import ua.alcash.parsing.ParseManager;
 import ua.alcash.util.AbstractActionWithInteger;
 
@@ -31,10 +30,14 @@ public class MainFrame extends JFrame {
     private NewContestDialog contestDialog = new NewContestDialog(this);
 
     private WorkspaceManager workspaceManager;
-    private ChromeListener chromeListener;
 
     private MainFrame() throws InstantiationException {
-        workspaceManager = new WorkspaceManager(this);
+        try {
+            workspaceManager = new WorkspaceManager(this);
+        } catch (IOException exception) {
+            receiveError("Failed to start workspace watcher, it's highly recommended to restart " +
+                    Configuration.PROJECT_NAME + "\n" + exception.getMessage());
+        }
         setTitle(Configuration.PROJECT_NAME);
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -51,7 +54,6 @@ public class MainFrame extends JFrame {
             System.setProperty("java.net.useSystemProxies", "true");
         } finally {
         }
-        chromeListener = new ChromeListener(this);
         configure();
 
         pack();
@@ -60,10 +62,9 @@ public class MainFrame extends JFrame {
 
     private void configure() {
         ParseManager.configure();
-        ProblemSync.configure();
+        workspaceManager.configure();
         problemDialog.configure();
         setupShortcuts();
-        chromeListener.start(Configuration.get("CHelper port"));
     }
 
     private void createMainMenu() {
@@ -92,7 +93,7 @@ public class MainFrame extends JFrame {
 
         workspaceMenu.setText("Workspace");
 
-        saveWorkspace.setText("Save to disk");
+        saveWorkspace.setText("Apply changes");
         saveWorkspace.addActionListener(event -> {
             for (int i = 0; i < problemsPane.getTabCount(); ++i) {
                 ((ProblemPanel) problemsPane.getComponentAt(i)).updateProblemFromInterface();
@@ -101,19 +102,14 @@ public class MainFrame extends JFrame {
         });
         workspaceMenu.add(saveWorkspace);
 
-        clearWorkspace.setText("Delete problems");
-        clearWorkspace.addActionListener(event -> {
-            int confirm = JOptionPane.showConfirmDialog(this,
-                    "Are you sure you want to delete all problem folders on disk?",
-                    Configuration.PROJECT_NAME,
-                    JOptionPane.YES_NO_OPTION);
-            workspaceManager.closeAllProblems(confirm == JOptionPane.YES_OPTION);
-        });
+        clearWorkspace.setText("Close problems");
+        clearWorkspace.addActionListener(event -> closeWorkspace());
         workspaceMenu.add(clearWorkspace);
 
         switchWorkspace.setText("Switch");
         switchWorkspace.addActionListener(event -> {
             if (workspaceManager.selectWorkspace() == JOptionPane.YES_OPTION) {
+                workspaceManager.closeAllProblems(false);
                 problemsPane.removeAll();
                 configure();
             }
@@ -143,7 +139,7 @@ public class MainFrame extends JFrame {
         deleteProblem.addActionListener(event -> closeProblem(true));
         singleTabPopupMenu.add(deleteProblem);
 
-        addMouseListener(new MouseAdapter() {
+        problemsPane.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent event) {
                 if (event.isPopupTrigger()) {
@@ -167,8 +163,8 @@ public class MainFrame extends JFrame {
     private void setupShortcuts() {
         newContest.setAccelerator(Configuration.getShortcut("new contest"));
         newProblem.setAccelerator(Configuration.getShortcut("new problem"));
-        saveWorkspace.setAccelerator(Configuration.getShortcut("workspace save to disk"));
-        clearWorkspace.setAccelerator(Configuration.getShortcut("workspace delete problems"));
+        saveWorkspace.setAccelerator(Configuration.getShortcut("workspace apply changes"));
+        clearWorkspace.setAccelerator(Configuration.getShortcut("workspace close problems"));
         switchWorkspace.setAccelerator(Configuration.getShortcut("workspace switch"));
         exitApp.setAccelerator(Configuration.getShortcut("exit"));
 
@@ -192,7 +188,7 @@ public class MainFrame extends JFrame {
             try {
                 ProblemSync problemSync = workspaceManager.addProblem(problem);
                 ProblemPanel panel = new ProblemPanel(this, problemSync);
-                problemsPane.addTab(problem.getProblemId(), panel);
+                problemsPane.addTab(problem.getId(), panel);
             } catch (IOException exception) {
                 receiveError(exception.getMessage());
             }
@@ -220,14 +216,22 @@ public class MainFrame extends JFrame {
         workspaceManager.updateWorkspace(true);
     }
 
-    private void confirmAndExit() {
+    private boolean closeWorkspace() {
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Keep the workspace content on the disk?",
                 Configuration.PROJECT_NAME,
                 JOptionPane.YES_NO_CANCEL_OPTION);
         if (confirm != JOptionPane.CANCEL_OPTION && confirm != JOptionPane.CLOSED_OPTION) {
             workspaceManager.closeAllProblems(confirm == JOptionPane.NO_OPTION);
-            chromeListener.stop();
+            problemsPane.removeAll();
+            return true;
+        }
+        return false;
+    }
+
+    private void confirmAndExit() {
+        if (closeWorkspace()) {
+            workspaceManager.stop();
             System.exit(0);
         }
     }

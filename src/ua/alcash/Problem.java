@@ -142,7 +142,7 @@ public class Problem {
         }
     }
 
-    public String getProblemId() { return problemId; }
+    public String getId() { return problemId; }
 
     public String getFullName() {
         String name = (problemName != null && !problemName.isEmpty()) ? problemName : problemId;

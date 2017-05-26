@@ -19,13 +19,13 @@
 
     <entry key="shortcut new contest">ctrl C</entry>
     <entry key="shortcut new problem">ctrl P</entry>
-    <entry key="shortcut workspace save to disk">ctrl S</entry>
-    <entry key="shortcut workspace delete problems">ctrl D</entry>
+    <entry key="shortcut workspace apply changes">ctrl A</entry>
+    <entry key="shortcut workspace close problems">ctrl D</entry>
     <entry key="shortcut workspace switch">ctrl W</entry>
     <entry key="shortcut test case new">ctrl T</entry>
     <entry key="shortcut test case edit">ctrl E</entry>
     <entry key="shortcut test case delete">DELETE</entry>
-    <entry key="shortcut test case save">ctrl ENTER</entry>
+    <entry key="shortcut test case save">ctrl S</entry>
     <entry key="shortcut exit">ctrl Q</entry>
 
     <entry key="CHelper port">4243</entry>
