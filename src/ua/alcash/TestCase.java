@@ -6,6 +6,7 @@ package ua.alcash;
 public class TestCase {
     private final static String UNKNOWN_KEY = "UNKNOWN";
     private final static String SKIPPED_KEY = "SKIPPED";
+    private final static String RUNNING_KEY = "RUNNING";
 
     private String name;
     private String input = "";
@@ -42,4 +43,6 @@ public class TestCase {
             executionResults = new String[] {SKIPPED_KEY};
         }
     }
+
+    public boolean isRunning() { return executionResults.length == 1 && executionResults[0].equals(RUNNING_KEY); }
 }

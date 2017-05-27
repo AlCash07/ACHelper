@@ -144,7 +144,13 @@ public class WorkspaceManager {
                     if (kind == OVERFLOW) continue;
                     WatchEvent<Path> watchEvent = cast(event);
                     Path file = watchEvent.context();
-                    problemSyncs.get(index).fileChanged(kind, file.toString());
+                    try {
+                        if (!problemSyncs.get(index).fileChanged(kind, file.toString())) {
+                            throw new IOException("Unexpected changes were observed in file " + file.toString());
+                        }
+                    } catch (IOException exception) {
+                        SwingUtilities.invokeLater(() -> parent.receiveError(exception.getMessage()));
+                    }
                 }
             }
             key.reset();

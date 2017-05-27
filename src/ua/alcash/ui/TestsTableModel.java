@@ -43,9 +43,15 @@ public class TestsTableModel extends AbstractTableModel {
         }
     }
 
-    public void rowUpdated(int index) { fireTableRowsUpdated(index, index); }
+    public void testCaseUpdated(int index) { fireTableRowsUpdated(index, index); }
 
-    public void rowInserted() { fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1); }
+    public void testCaseAdded() { fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1); }
 
-    public void rowDeleted(int index) { fireTableRowsDeleted(index, index); }
+    public void testCaseDeleted(int index) { fireTableRowsDeleted(index, index); }
+
+    public void executionResultsUpdated() {
+        for (int row = 0; row < getRowCount(); ++row) {
+            fireTableCellUpdated(row, 3);
+        }
+    }
 }

@@ -152,7 +152,7 @@ public class ProblemPanel extends JPanel {
         TestCaseDialog dialog = new TestCaseDialog(parentFrame, newTestCase);
         dialog.setVisible(true);
         if (dialog.somethingChanged()) {
-            runAndCheck(() -> problemSync.addTestCase(newTestCase));
+            runAndCheck(() -> problemSync.addTestCase(newTestCase, true));
         }
     }
 
@@ -182,7 +182,7 @@ public class ProblemPanel extends JPanel {
                 Configuration.PROJECT_NAME,
                 JOptionPane.YES_NO_OPTION);
         if (confirmed == JOptionPane.YES_OPTION) {
-            runAndCheck(() -> problemSync.deleteTestCase(getSelectedIndex()));
+            runAndCheck(() -> problemSync.deleteTestCase(getSelectedIndex(), true));
         }
     }
 

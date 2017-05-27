@@ -170,18 +170,24 @@ int main(int argc, const char* argv[]) {
         // evaluation
         ostringstream resultStream;
         resultStream << fixed << setprecision(3) << elapsed << ' ';
-        if (status == 0) {  // run checker
-            string checkerCommand = binaryPath + "Checker";
-            status = executeProcess([&checkerCommand, &testCase]() {
-                execl(checkerCommand.data(),
-                    checkerCommand.data(),
-                    testCase.inputFileName.data(),
-                    testCase.outputFileName.data(),
-                    testCase.answerFileName.data());
-            }, CHECKER_TIME_LIMIT, error);
-            if (status == 1 && error == "TLE") {
-                status = -1;
+        if (status == 0) {  // check if answer file is not empty
+            ifstream answerFile(testCase.answerFileName);
+            if (!answerFile || answerFile.peek() == ifstream::traits_type::eof()) {
+                error = "UNKNOWN";
+            } else {  // run checker
+                string checkerCommand = binaryPath + "Checker";
+                status = executeProcess([&checkerCommand, &testCase]() {
+                    execl(checkerCommand.data(),
+                        checkerCommand.data(),
+                        testCase.inputFileName.data(),
+                        testCase.outputFileName.data(),
+                        testCase.answerFileName.data());
+                }, CHECKER_TIME_LIMIT, error);
+                if (status == 1 && error == "TLE") {
+                    status = -1;
+                }
             }
+            answerFile.close();
         }
         if (status == -1) {
             resultStream << "judgement error";

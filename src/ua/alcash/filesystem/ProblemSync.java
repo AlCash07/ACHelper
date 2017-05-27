@@ -6,13 +6,16 @@ import ua.alcash.TestCase;
 import ua.alcash.ui.TestsTableModel;
 
 import javax.swing.table.AbstractTableModel;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+
+import static java.nio.file.Files.newBufferedReader;
+import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
  * Created by oleksandr.bacherikov on 5/25/17.
@@ -53,10 +56,17 @@ public class ProblemSync {
     void initialize() throws IOException {
         Path problemPath = Paths.get(directory);
         Files.createDirectories(problemPath);
+        // add existing test cases from the disk
         Files.walkFileTree(problemPath, new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                System.out.println(file.toString());
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                String fileName = path.toString();
+                if (fileName.endsWith(inputExtension)) {
+                    String testName = fileName.substring(0, fileName.lastIndexOf("."));
+                    if (!testCaseNames.contains(testName)) {
+                        addTestCaseFromDisk(testName);
+                    }
+                }
                 return FileVisitResult.CONTINUE;
             }
         });
@@ -64,6 +74,7 @@ public class ProblemSync {
             createTestCaseFiles(i);
         }
         testsListChanged();
+        writtenFiles.clear();
     }
 
     static void configure() {
@@ -91,15 +102,43 @@ public class ProblemSync {
         return manualTestName + manualTestIndex;
     }
 
-    public void addTestCase(TestCase testCase) throws IOException {
+    public void addTestCase(TestCase testCase, boolean createFiles) throws IOException {
         checkNotRunning();
         testSetChanged = true;
         int index = testCases.size();
         testCases.add(testCase);
         testCaseNames.add(testCase.getName());
-        createTestCaseFiles(index);
+        testsTableModel.testCaseAdded();
+        if (createFiles) {
+            createTestCaseFiles(index);
+        }
         testsListChanged();
-        testsTableModel.rowInserted();
+    }
+
+    private void addTestCaseFromDisk(String name) throws IOException {
+        TestCase testCase = new TestCase(name,
+                readFromFile(name + inputExtension),
+                readFromFile(name + expectedOutputExtension));
+        testCase.setProgramOutput(readFromFile(name + programOutputExtension));
+        addTestCase(testCase, false);
+    }
+
+    private String readFromFile(String fileName) throws IOException {
+        Path path = Paths.get(directory, fileName);
+        if (!Files.exists(path)) {
+            writeToFile(fileName, "");
+            return "";
+        } else {
+            int fileSize = (int) new File(path.toString()).length();
+            char[] data = new char[Math.min(fileSize, maxLength)];
+            BufferedReader reader = newBufferedReader(path, StandardCharsets.UTF_8);
+            fileSize = reader.read(data, 0, data.length);
+            String result = new String(data, 0, fileSize);
+            if (fileSize == maxLength) {
+                result += "...";
+            }
+            return result;
+        }
     }
 
     private void writeToFile(String fileName, String data) throws IOException {
@@ -111,12 +150,12 @@ public class ProblemSync {
     }
 
     public void testInputChanged(int index) throws IOException {
-        testsTableModel.rowUpdated(index);
+        testsTableModel.testCaseUpdated(index);
         writeToFile(testCases.get(index).getName() + inputExtension, testCases.get(index).getInput());
     }
 
     public void testAnswerChanged(int index) throws IOException {
-        testsTableModel.rowUpdated(index);
+        testsTableModel.testCaseUpdated(index);
         writeToFile(testCases.get(index).getName() + expectedOutputExtension,
                 testCases.get(index).getExpectedOutput());
     }
@@ -124,50 +163,50 @@ public class ProblemSync {
     private void createTestCaseFiles(int index) throws IOException {
         testInputChanged(index);
         testAnswerChanged(index);
-        Path outputFile = Paths.get(directory, testCases.get(index).getName() + programOutputExtension);
-        if (!Files.exists(outputFile)) {
-            Files.createFile(outputFile);
-        }
+        writeToFile(testCases.get(index).getName() + programOutputExtension, "");
     }
 
     public void setTestSolved(int index) throws IOException {
         TestCase testCase = testCases.get(index);
-        testCase.setExpectedOutput(testCase.getProgramOutput());
-        testsTableModel.rowUpdated(index);
         String name = testCase.getName();
         synchronized (writtenFiles) {
             writtenFiles.add(name + expectedOutputExtension);
         }
         Files.copy(Paths.get(directory, name + programOutputExtension),
-                Paths.get(directory, name + expectedOutputExtension));
+                Paths.get(directory, name + expectedOutputExtension),
+                StandardCopyOption.REPLACE_EXISTING);
+        testCase.setExpectedOutput(testCase.getProgramOutput());
+        testsTableModel.testCaseUpdated(index);
     }
 
     public void flipTestSkipped(int index) throws IOException {
         checkNotRunning();
         testCases.get(index).flipSkipped();
-        testsTableModel.rowUpdated(index);
+        testsTableModel.testCaseUpdated(index);
         testsListChanged();
     }
 
     public void swapTestCases(int index1, int index2) throws IOException {
         checkNotRunning();
         Collections.swap(testCases, index1, index2);
-        testsTableModel.rowUpdated(index1);
-        testsTableModel.rowUpdated(index2);
+        testsTableModel.testCaseUpdated(index1);
+        testsTableModel.testCaseUpdated(index2);
         testsListChanged();
     }
 
-    public void deleteTestCase(int index) throws IOException {
+    public void deleteTestCase(int index, boolean deleteFiles) throws IOException {
         checkNotRunning();
         testSetChanged = true;
         String name = testCases.get(index).getName();
         testCaseNames.remove(name);
         testCases.remove(index);
-        testsTableModel.rowDeleted(index);
+        testsTableModel.testCaseDeleted(index);
         testsListChanged();
-        Files.delete(Paths.get(directory, name + inputExtension));
-        Files.delete(Paths.get(directory, name + expectedOutputExtension));
-        Files.delete(Paths.get(directory, name + programOutputExtension));
+        if (deleteFiles) {
+            Files.delete(Paths.get(directory, name + inputExtension));
+            Files.delete(Paths.get(directory, name + expectedOutputExtension));
+            Files.delete(Paths.get(directory, name + programOutputExtension));
+        }
     }
 
     private void checkNotRunning() throws IOException {
@@ -199,25 +238,94 @@ public class ProblemSync {
         });
     }
 
-    void fileChanged(WatchEvent.Kind kind, String fileName) {
-        System.out.format("%s: %s (%s)\n", kind.name(), fileName, getProblem().getId());
+    boolean fileChanged(final WatchEvent.Kind kind, String fileName) throws IOException {
+        System.out.format("%s: %s (%s)\n", kind.toString(), fileName, problem.getId());
         synchronized (writtenFiles) {
             if (writtenFiles.contains(fileName)) {
                 writtenFiles.remove(fileName);
-                System.out.println("just written");
-                return;
+                return true;
             }
-            if (fileName.equals(testListFileName)) {
-//            Stream<String> lines = Files.lines(testListFile, utf8);
-//            if (lines.anyMatch(line -> {
-//                String[] tokens = line.split(" ");
-//                return tokens.length > 1 && (tokens[1].equals("RUNNING") || tokens[1].equals("PENDING"));
-//            })) {
-//                throw new IOException("Cannot write tests to disk while testing is in progress.");
-//            }
+            if (fileName.equals(testListFileName)) {  // tests list file change
+                testsAreRunning = false;
+                if (kind == ENTRY_CREATE) {
+                    return false;
+                } else if (kind == ENTRY_MODIFY) {
+                    List<String> lines = Files.readAllLines(Paths.get(directory, fileName));
+                    if (lines.size() != testCases.size()) {
+                        return false;
+                    }
+                    for (int i = 0; i < lines.size(); ++i) {
+                        String[] tokens = lines.get(i).split(" ", 2);
+                        if (tokens.length != 2 || !tokens[0].equals(testCases.get(i).getName())) {
+                            return false;
+                        }
+                        testCases.get(i).setExecutionResults(tokens[1]);
+                        if (testCases.get(i).isRunning()) {
+                            testsAreRunning = true;
+                        }
+                    }
+                    testsTableModel.executionResultsUpdated();
+                } else {  // ENTRY_DELETE
+                    testsListChanged();
+                }
             } else {
-
+                int type = -1;
+                if (fileName.endsWith(inputExtension)) {
+                    type = 0;
+                } else if (fileName.endsWith(expectedOutputExtension)) {
+                    type = 1;
+                } else if (fileName.endsWith(programOutputExtension)) {
+                    type = 2;
+                }
+                if (type == -1) {
+                    return true;
+                }
+                String testName = fileName.substring(0, fileName.lastIndexOf("."));
+                if (!testCaseNames.contains(testName)) {  // unknown test case file change
+                    if (type != 0) {
+                        return true;
+                    }
+                    if (kind == ENTRY_CREATE) {
+                        addTestCaseFromDisk(testName);
+                    } else {
+                        return false;
+                    }
+                } else {  // known test case file change
+                    int testIndex = 0;
+                    for (; !testCases.get(testIndex).getName().equals(testName); ++testIndex);
+                    TestCase testCase = testCases.get(testIndex);
+                    if (kind == ENTRY_CREATE) {
+                        return false;
+                    } else if (kind == ENTRY_MODIFY) {
+                        String data = readFromFile(fileName);
+                        switch (type) {
+                            case 0:
+                                testCase.setInput(data);
+                                break;
+                            case 1:
+                                testCase.setExpectedOutput(data);
+                                break;
+                            case 2:
+                                testCase.setProgramOutput(data);
+                                break;
+                        }
+                        testsTableModel.testCaseUpdated(testIndex);
+                    } else {  // ENTRY_DELETE
+                        if (type == 0) {
+                            deleteTestCase(testIndex, false);
+                        } else {
+                            if (type == 1) {
+                                testCase.setExpectedOutput("");
+                            } else {
+                                testCase.setProgramOutput("");
+                            }
+                            testsTableModel.testCaseUpdated(testIndex);
+                            writeToFile(fileName, "");
+                        }
+                    }
+                }
             }
+            return true;
         }
     }
 
