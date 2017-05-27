@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
- * Created by oleksandr.bacherikov on 5/24/17.
+ * Created by Al.Cash on 5/24/17.
  */
 public class WorkspaceManager {
     private MainFrame parent;

@@ -12,7 +12,7 @@ import java.net.MalformedURLException;
 import java.util.*;
 
 /**
- * Created by oleksandr.bacherikov on 5/8/17.
+ * Created by Al.Cash on 5/8/17.
  */
 public class ParseManager {
     private static final Map<String, Parser> PLATFORM_ID_TO_PARSER;

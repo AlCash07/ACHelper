@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by oleksandr.bacherikov on 5/23/17.
+ * Created by Al.Cash on 5/23/17.
  */
 class Generator {
     static void generate(String directory, Collection<ProblemSync> problemSyncs, boolean project) throws IOException {

@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
- * Created by oleksandr.bacherikov on 5/9/17.
+ * Created by Al.Cash on 5/9/17.
  */
 public class MainFrame extends JFrame {
     private JPanel rootPanel;

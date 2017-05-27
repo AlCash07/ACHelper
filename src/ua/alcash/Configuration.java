@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.util.Properties;
 
 /**
- * Created by oleksandr.bacherikov on 5/8/17.
+ * Created by Al.Cash on 5/8/17.
  */
 public class Configuration {
     static final public String PROJECT_NAME = "ACHelper";

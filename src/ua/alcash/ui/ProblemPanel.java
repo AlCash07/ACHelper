@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.text.ParseException;
 
 /**
- * Created by oleksandr.bacherikov on 5/9/17.
+ * Created by Al.Cash on 5/9/17.
  */
 public class ProblemPanel extends JPanel {
     private Frame parentFrame;

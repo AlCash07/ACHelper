@@ -20,7 +20,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by oleksandr.bacherikov on 5/13/17.
+ * Created by Al.Cash on 5/13/17.
  */
 public class NewContestDialog extends JDialog {
     private final static String PARSING = "Parsing...";

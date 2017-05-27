@@ -18,7 +18,7 @@ import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
- * Created by oleksandr.bacherikov on 5/25/17.
+ * Created by Al.Cash on 5/25/17.
  */
 public class ProblemSync {
     private static String testListFileName;

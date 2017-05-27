@@ -14,7 +14,7 @@ import java.net.Socket;
 import java.util.Collection;
 
 /**
- * Created by oleksandr.bacherikov on 5/11/17.
+ * Created by Al.Cash on 5/11/17.
  */
 public class ChromeListener implements Runnable {
     private MainFrame receiver;

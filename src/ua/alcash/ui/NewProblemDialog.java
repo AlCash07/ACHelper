@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Created by oleksandr.bacherikov on 5/9/17.
+ * Created by Al.Cash on 5/9/17.
  */
 public class NewProblemDialog extends JDialog {
     private JPanel rootPanel;

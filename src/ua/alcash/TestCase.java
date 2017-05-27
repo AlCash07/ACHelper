@@ -1,7 +1,7 @@
 package ua.alcash;
 
 /**
- * Created by oleksandr.bacherikov on 5/8/17.
+ * Created by Al.Cash on 5/8/17.
  */
 public class TestCase {
     private final static String UNKNOWN_KEY = "UNKNOWN";

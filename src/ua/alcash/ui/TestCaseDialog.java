@@ -13,7 +13,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 /**
- * Created by oleksandr.bacherikov on 5/10/17.
+ * Created by Al.Cash on 5/10/17.
  */
 public class TestCaseDialog extends JDialog {
     private JPanel rootPanel;
