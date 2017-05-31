@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 
 # custom directories
-set(INCLUDES_DIR includes)
+set(INCLUDES_DIR templates)
 set(TEMPLATES_DIR templates/cpp)
 set(CHECKERS_DIR templates)
+set(CODE_INLINER ~/caide-cpp-inliner/Build/cmd/Release/cmd)
 
 # IDE project name
 project("Contest")
@@ -56,6 +57,25 @@ add_custom_target(includes SOURCES ${HEADER_FILES})
 source_group("" FILES ${TEMPLATES_DIR}/tester.cpp)
 add_library(tester ${TEMPLATES_DIR}/tester.cpp)
 
+# get system include directories for the code inliner
+execute_process(COMMAND g++ -v -x c++ -E /dev/null
+        OUTPUT_VARIABLE GCC_OUTPUT ERROR_VARIABLE GCC_OUTPUT)
+string(REGEX REPLACE "^.*#include <...> search starts here:.|End of search list..*$" ""
+        GCC_OUTPUT ${GCC_OUTPUT})
+string(REGEX REPLACE "[^|\n][^\n]*\\(framework directory\\)" "" GCC_OUTPUT ${GCC_OUTPUT})
+string(REGEX REPLACE "^ |\n |\n" ";" SYSTEM_DIRS ${GCC_OUTPUT})
+foreach(SYSTEM_DIR ${SYSTEM_DIRS})
+  if(NOT ${SYSTEM_DIR} STREQUAL "")
+    list(APPEND INLINER_PARAMS -isystem ${SYSTEM_DIR})
+  endif()
+endforeach()
+
+# set other common inliner params
+list(APPEND INLINER_PARAMS -std=c++11 -nostdinc -fparse-all-comments -DONLINE_JUDGE)
+list(APPEND INLINER_PARAMS -I ${INCLUDES_DIR} -I ${TEMPLATES_DIR} --)
+file(MAKE_DIRECTORY Products/caide)
+list(APPEND INLINER_PARAMS -l 1 -d Products/caide -o submission.cpp)
+
 # problems
 
 set(PROBLEM_DIR @problem_dir@)
@@ -72,14 +92,17 @@ else()
     # link problem solution with tester library that will run it on all the tests
     target_link_libraries(@problem_id@ tester)
     # create a file alongside the binary pointing to tests location
+    add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND ${CMAKE_COMMAND} -E
+            echo ${PROBLEM_DIR}/tests > $<TARGET_FILE_DIR:@problem_id@>/@problem_id@Path)
     add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
-        echo ${PROBLEM_DIR}/tests > $<TARGET_FILE_DIR:@problem_id@>/@problem_id@Path)
+            ${CODE_INLINER} ARGS ${INLINER_PARAMS} ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/main.cpp
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 endif()
 
 if(@custom_checker@)
     # custom checker target
-    set(CHECKER_FILE {PROBLEM_DIR}/checker.cpp)
-    configure_file(${CHECKERS_DIR}/checker.cpp ${CHECKER_FILE})
+    set(CHECKER_FILE ${PROBLEM_DIR}/checker.cpp)
     source_group("" FILES ${CHECKER_FILE})
+    target_include_directories(@problem_id@Checker PRIVATE ${CHECKERS_DIR})
     add_executable(@problem_id@Checker ${CHECKER_FILE})
 endif()

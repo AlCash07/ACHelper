@@ -1,6 +1,9 @@
+#pragma once
+// Powered by ACHelper (https://github.com/AlCash07/ACHelper)
+
 #include <iostream>
 
-extern void solve(std::istream& in, std::ostream& out);
+void solve(std::istream& in, std::ostream& out);
 
 extern const double TIME_LIMIT;
 

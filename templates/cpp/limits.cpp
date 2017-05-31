@@ -1,4 +1,4 @@
-#include <solution.h>
+#include "solution.h"
 
 const double TIME_LIMIT = @time_limit@;
 
