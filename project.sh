@@ -1,3 +1,5 @@
-mkdir Products
-cd Products
+#!/bin/sh
+
+mkdir Project
+cd Project
 cmake -G Xcode ..

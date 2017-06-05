@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 # custom directories
-set(INCLUDES_DIR templates)
+set(INCLUDES_DIR /Users/oleksandr.bacherikov/algo)
 set(TEMPLATES_DIR templates/cpp)
 set(CHECKERS_DIR templates)
 set(CODE_INLINER ~/caide-cpp-inliner/Build/cmd/Release/cmd)
@@ -73,8 +73,12 @@ endforeach()
 # set other common inliner params
 list(APPEND INLINER_PARAMS -std=c++11 -nostdinc -fparse-all-comments -DONLINE_JUDGE)
 list(APPEND INLINER_PARAMS -I ${INCLUDES_DIR} -I ${TEMPLATES_DIR} --)
-file(MAKE_DIRECTORY Products/caide)
-list(APPEND INLINER_PARAMS -l 1 -d Products/caide -o submission.cpp)
+file(MAKE_DIRECTORY Project/caide)
+list(APPEND INLINER_PARAMS -l 1 -d Project/caide -o submission.cpp)
+
+# target to view the submission code and validate that it actually compiles :)
+add_executable(submission submission.cpp)
+source_group("" FILES submission.cpp)
 
 # problems
 
@@ -94,10 +98,12 @@ else()
     # create a file alongside the binary pointing to tests location
     add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND ${CMAKE_COMMAND} -E
             echo ${PROBLEM_DIR}/tests > $<TARGET_FILE_DIR:@problem_id@>/@problem_id@Path)
-    add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
-            ${CODE_INLINER} ARGS ${INLINER_PARAMS} ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/main.cpp
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 endif()
+
+# run code inliner in the background after the build
+add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
+        ./launcher.sh ARGS ${CODE_INLINER} ${INLINER_PARAMS} ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/main.cpp
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 if(@custom_checker@)
     # custom checker target

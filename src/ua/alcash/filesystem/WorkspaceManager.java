@@ -10,6 +10,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -57,7 +58,12 @@ public class WorkspaceManager {
     public int selectWorkspace() {
         JFileChooser fileChooser = new JFileChooser(workspaceDirectory);
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        final AtomicInteger result = new AtomicInteger();
+        try {
+            SwingUtilities.invokeAndWait(() -> result.set(fileChooser.showOpenDialog(parent)));
+        } catch (Exception ignored) {
+        }
+        if (result.get() == JFileChooser.APPROVE_OPTION) {
             String directory = fileChooser.getSelectedFile().getAbsolutePath();
             if (!Configuration.load(directory)) {
                 parent.receiveWarning("Selected directory doesn't contain valid configuration file "

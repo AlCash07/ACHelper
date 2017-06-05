@@ -52,7 +52,7 @@ public class MainFrame extends JFrame {
         // set system proxy if there is one
         try {
             System.setProperty("java.net.useSystemProxies", "true");
-        } finally {
+        } catch (Exception ignored) {
         }
         configure();
 

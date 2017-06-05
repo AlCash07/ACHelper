@@ -38,7 +38,7 @@ public class ProblemSync {
     private TestsTableModel testsTableModel;  // used to notify testsTable about the testCaseSet changes
     private boolean testSetChanged = true;
 
-    private final Set<String> writtenFiles = new HashSet<>();
+    private final Set<String> modifiedFiles = new HashSet<>();
 
     private boolean testsAreRunning = false;
 
@@ -60,7 +60,7 @@ public class ProblemSync {
         Files.walkFileTree(problemPath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
-                String fileName = path.toString();
+                String fileName = path.getFileName().toString();
                 if (fileName.endsWith(inputExtension)) {
                     String testName = fileName.substring(0, fileName.lastIndexOf("."));
                     if (!testCaseNames.contains(testName)) {
@@ -74,7 +74,7 @@ public class ProblemSync {
             createTestCaseFiles(i);
         }
         testsListChanged();
-        writtenFiles.clear();
+        modifiedFiles.clear();
     }
 
     static void configure() {
@@ -142,8 +142,8 @@ public class ProblemSync {
     }
 
     private void writeToFile(String fileName, String data) throws IOException {
-        synchronized (writtenFiles) {
-            writtenFiles.add(fileName);
+        synchronized (modifiedFiles) {
+            modifiedFiles.add(fileName);
         }
         Path inputFile = Paths.get(directory, fileName);
         Files.write(inputFile, data.getBytes());
@@ -169,8 +169,8 @@ public class ProblemSync {
     public void setTestSolved(int index) throws IOException {
         TestCase testCase = testCases.get(index);
         String name = testCase.getName();
-        synchronized (writtenFiles) {
-            writtenFiles.add(name + expectedOutputExtension);
+        synchronized (modifiedFiles) {
+            modifiedFiles.add(name + expectedOutputExtension);
         }
         Files.copy(Paths.get(directory, name + programOutputExtension),
                 Paths.get(directory, name + expectedOutputExtension),
@@ -194,6 +194,13 @@ public class ProblemSync {
         testsListChanged();
     }
 
+    private void deleteFile(String fileName) throws IOException {
+        synchronized (modifiedFiles) {
+            modifiedFiles.add(fileName);
+        }
+        Files.delete(Paths.get(directory, fileName));
+    }
+
     public void deleteTestCase(int index, boolean deleteFiles) throws IOException {
         checkNotRunning();
         testSetChanged = true;
@@ -203,9 +210,9 @@ public class ProblemSync {
         testsTableModel.testCaseDeleted(index);
         testsListChanged();
         if (deleteFiles) {
-            Files.delete(Paths.get(directory, name + inputExtension));
-            Files.delete(Paths.get(directory, name + expectedOutputExtension));
-            Files.delete(Paths.get(directory, name + programOutputExtension));
+            deleteFile(name + inputExtension);
+            deleteFile(name + expectedOutputExtension);
+            deleteFile(name + programOutputExtension);
         }
     }
 
@@ -240,9 +247,9 @@ public class ProblemSync {
 
     boolean fileChanged(final WatchEvent.Kind kind, String fileName) throws IOException {
         System.out.format("%s: %s (%s)\n", kind.toString(), fileName, problem.getId());
-        synchronized (writtenFiles) {
-            if (writtenFiles.contains(fileName)) {
-                writtenFiles.remove(fileName);
+        synchronized (modifiedFiles) {
+            if (modifiedFiles.contains(fileName)) {
+                modifiedFiles.remove(fileName);
                 return true;
             }
             if (fileName.equals(testListFileName)) {  // tests list file change

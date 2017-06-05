@@ -170,7 +170,8 @@ int main(int argc, const char* argv[]) {
         // evaluation
         ostringstream resultStream;
         resultStream << fixed << setprecision(3) << elapsed << ' ';
-        if (status == 0) {  // check if answer file is not empty
+        if (status == 0) {
+            // check if answer file is not empty
             ifstream answerFile(testCase.answerFileName);
             if (!answerFile || answerFile.peek() == ifstream::traits_type::eof()) {
                 error = "UNKNOWN";
