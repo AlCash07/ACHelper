@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 # custom directories
-set(INCLUDES_DIR /Users/oleksandr.bacherikov/algo)
+set(INCLUDES_DIR templates)
 set(TEMPLATES_DIR templates/cpp)
 set(CHECKERS_DIR templates)
 set(CODE_INLINER ~/caide-cpp-inliner/Build/cmd/Release/cmd)
