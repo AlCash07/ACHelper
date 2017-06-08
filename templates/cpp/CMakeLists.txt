@@ -7,7 +7,7 @@ set(CHECKERS_DIR templates)
 set(CODE_INLINER ~/caide-cpp-inliner/Build/cmd/Release/cmd)
 
 # IDE project name
-project("Contest")
+project("ACHelperProject")
 
 # remove ZERO_CHECK target
 set(CMAKE_SUPPRESS_REGENERATION true)
@@ -102,7 +102,7 @@ endif()
 
 # run code inliner in the background after the build
 add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
-        ./launcher.sh ARGS ${CODE_INLINER} ${INLINER_PARAMS} ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/main.cpp
+        scripts/launcher.sh ARGS ${CODE_INLINER} ${INLINER_PARAMS} ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/main.cpp
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 if(@custom_checker@)
