@@ -1,17 +1,16 @@
 package ua.alcash.filesystem;
 
-import com.google.common.io.CharStreams;
 import ua.alcash.Configuration;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Created by Al.Cash on 5/23/17.
@@ -72,7 +71,9 @@ class Generator {
     private static void executeCommand(String directory, String command) throws IOException {
         Runtime runtime = Runtime.getRuntime();
         Process process = runtime.exec(command, null, new File(directory));
-        System.out.println(CharStreams.toString(new InputStreamReader(process.getInputStream())));
-        System.err.println(CharStreams.toString(new InputStreamReader(process.getErrorStream())));
+        Scanner outScanner = new Scanner(process.getInputStream()).useDelimiter("\\A");
+        System.out.println(outScanner.hasNext() ? outScanner.next() : "");
+        Scanner errScanner = new Scanner(process.getErrorStream()).useDelimiter("\\A");
+        System.err.println(errScanner.hasNext() ? errScanner.next() : "");
     }
 }

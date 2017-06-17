@@ -8,5 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="chelper" level="project" />
+    <orderEntry type="library" name="commons-lang-2.6" level="project" />
+    <orderEntry type="library" name="openapi-7.0.3" level="project" />
   </component>
 </module>

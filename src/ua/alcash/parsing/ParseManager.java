@@ -3,7 +3,6 @@ package ua.alcash.parsing;
 import net.egork.chelper.parser.*;
 import net.egork.chelper.task.Task;
 import net.egork.chelper.util.FileUtilities;
-import org.jetbrains.annotations.NotNull;
 import ua.alcash.Configuration;
 import ua.alcash.Problem;
 
@@ -52,7 +51,7 @@ public class ParseManager {
         platformUrls.put("rcc", "russiancodecup.ru");
         platformUrls.put("timus", "acm.timus.ru");
         platformUrls.put("usaco", "usaco.org");
-        platformUrls.put("yandex", "contest.yandex.ru");
+        platformUrls.put("yandex", "contest.yandex");
         PLATFORM_ID_TO_URL = Collections.unmodifiableMap(platformUrls);
 
         Map<String, String> contestUrls = new HashMap<>();
@@ -60,17 +59,17 @@ public class ParseManager {
         contestUrls.put("codeforces", "codeforces.com/contest/");
         contestUrls.put("gcj", "code.google.com/codejam/contest/");
         contestUrls.put("kattis", "open.kattis.com/contests/");
-        contestUrls.put("rcc", "russiancodecup.ru/championship/round/");
+        contestUrls.put("rcc", "/championship/round/");
         contestUrls.put("timus", "acm.timus.ru/problemset.aspx?space=");
         PLATFORM_ID_TO_CONTEST_URL = Collections.unmodifiableMap(contestUrls);
     }
 
     public static void configure() {
         platformIdToName.clear();
-        PLATFORM_ID_TO_PARSER.entrySet().forEach(entry -> {
-            String platformName = Configuration.getPlatform(entry.getKey());
+        PLATFORM_ID_TO_PARSER.forEach((key, value) -> {
+            String platformName = Configuration.getPlatform(key);
             if (platformName != null) {
-                platformIdToName.put(entry.getKey(), platformName);
+                platformIdToName.put(key, platformName);
             }
         });
     }
@@ -82,16 +81,14 @@ public class ParseManager {
 
     public static List<String> getPlatformIds() {
         List<String> platformIds = new ArrayList<>();
-        platformIdToName.entrySet().forEach(entry -> {
-            platformIds.add(entry.getKey());
-        });
+        platformIdToName.forEach((key, value) -> platformIds.add(key));
         return platformIds;
     }
 
     private static String getPlatformByUrl(String url) throws MalformedURLException {
         List<String> platformIds = new ArrayList<>();
-        PLATFORM_ID_TO_URL.entrySet().forEach(entry -> {
-            if (url.contains(entry.getValue())) platformIds.add(entry.getKey());
+        PLATFORM_ID_TO_URL.forEach((key, value) -> {
+            if (url.contains(value)) platformIds.add(key);
         });
         if (platformIds.isEmpty()) {
             throw new MalformedURLException("Unrecognized platform.");
@@ -102,7 +99,6 @@ public class ParseManager {
         }
     }
 
-    @NotNull
     public static Collection<Problem> parseProblemsFromHtml(String platformId, String page)
             throws ParserConfigurationException {
         if (!platformIdToName.containsKey(platformId)) {
@@ -120,7 +116,6 @@ public class ParseManager {
         return problems;
     }
 
-    @NotNull
     public static Collection<Problem> parseProblemByUrl(String url)
             throws MalformedURLException, ParserConfigurationException {
         String platformId = getPlatformByUrl(url);
@@ -152,7 +147,6 @@ public class ParseManager {
         }
     }
 
-    @NotNull
     public static Collection<Problem> parseContestByUrl(String url)
             throws MalformedURLException, ParserConfigurationException {
         String platformId = getPlatformByUrl(url);

@@ -50,5 +50,5 @@
     <entry key="generate files template">templates/cpp/CMakeScripts.txt</entry>
     <entry key="generate files command">cmake -P CMakeScripts.txt</entry>
     <entry key="generate project template">templates/cpp/CMakeLists.txt</entry>
-    <entry key="generate project command">scripts/project.sh</entry>
+    <entry key="generate project command">scripts/unix/project.sh</entry>
 </properties>

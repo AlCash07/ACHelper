@@ -56,6 +56,9 @@ public class ProblemSync {
     void initialize() throws IOException {
         Path problemPath = Paths.get(directory);
         Files.createDirectories(problemPath);
+        for (int i = 0; i < testCases.size(); ++i) {
+            createTestCaseFiles(i);
+        }
         // add existing test cases from the disk
         Files.walkFileTree(problemPath, new SimpleFileVisitor<Path>() {
             @Override
@@ -70,9 +73,6 @@ public class ProblemSync {
                 return FileVisitResult.CONTINUE;
             }
         });
-        for (int i = 0; i < testCases.size(); ++i) {
-            createTestCaseFiles(i);
-        }
         testsListChanged();
         modifiedFiles.clear();
     }
@@ -246,7 +246,6 @@ public class ProblemSync {
     }
 
     boolean fileChanged(final WatchEvent.Kind kind, String fileName) throws IOException {
-        System.out.format("%s: %s (%s)\n", kind.toString(), fileName, problem.getId());
         synchronized (modifiedFiles) {
             if (modifiedFiles.contains(fileName)) {
                 modifiedFiles.remove(fileName);
@@ -275,7 +274,7 @@ public class ProblemSync {
                 } else {  // ENTRY_DELETE
                     testsListChanged();
                 }
-            } else {
+            } else {  // other file change
                 int type = -1;
                 if (fileName.endsWith(inputExtension)) {
                     type = 0;
@@ -284,7 +283,7 @@ public class ProblemSync {
                 } else if (fileName.endsWith(programOutputExtension)) {
                     type = 2;
                 }
-                if (type == -1) {
+                if (type == -1) {  // not a test file
                     return true;
                 }
                 String testName = fileName.substring(0, fileName.lastIndexOf("."));
@@ -317,6 +316,11 @@ public class ProblemSync {
                                 break;
                         }
                         testsTableModel.testCaseUpdated(testIndex);
+                        // tests list file change may not be signalled after the last test case,
+                        // so we manually signal it
+                        if (testIndex + 1 == testCases.size()) {
+                            fileChanged(ENTRY_MODIFY, testListFileName);
+                        }
                     } else {  // ENTRY_DELETE
                         if (type == 0) {
                             deleteTestCase(testIndex, false);

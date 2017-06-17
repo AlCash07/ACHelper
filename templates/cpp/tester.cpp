@@ -1,3 +1,4 @@
+#include "problem_limits.h"
 #include "solution.h"
 
 #include <chrono>
@@ -87,6 +88,8 @@ int executeProcess(Function f, double timeLimit, string& error) {
     }
     if (WEXITSTATUS(status) == SIGALRM) {
         error = "TLE";
+    } else if (status == 11) {
+        error = "segmentation fault";
     }
     return 1;
 }

@@ -1,0 +1,15 @@
+c = works from Chrome extension only
+
++ http://agc015.contest.atcoder.jp/tasks/agc015_f
+- https://www.codechef.com/problems/INTERVAL
++ http://codeforces.com/problemset/problem/484/E
+- https://csacademy.com/contest/archive/task/addition/
++ https://www.facebook.com/hackercup/problem/1703546573272198/
+c https://code.google.com/codejam/contest/8304486/dashboard
+c https://www.hackerearth.com/challenge/test/indiahacks-algorithm-finals/algorithm/2103dcc3b35e421cbec9aee15d71e6cd/
+- https://www.hackerrank.com/challenges/a-very-big-sum
+c https://www.hackerrank.com/contests/world-codesprint-8/challenges/snake-case
++ https://open.kattis.com/problems/fizzbuzz
++ http://www.russiancodecup.ru/en/championship/round/59/
+c http://www.usaco.org/index.php?page=viewproblem2&cpid=744
+c https://contest.yandex.com/algorithm2017/contest/4598/problems/F/

@@ -84,7 +84,7 @@ source_group("" FILES submission.cpp)
 
 set(PROBLEM_DIR @problem_dir@)
 # make test files show up in IDE along with source file
-file(GLOB PROBLEM_FILES ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/limits.cpp
+file(GLOB PROBLEM_FILES ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/problem_limits.cpp
         ${PROBLEM_DIR}/*.in ${PROBLEM_DIR}/*.out ${PROBLEM_DIR}/*.ans)
 source_group("" FILES ${PROBLEM_FILES})
 
@@ -102,7 +102,8 @@ endif()
 
 # run code inliner in the background after the build
 add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
-        scripts/launcher.sh ARGS ${CODE_INLINER} ${INLINER_PARAMS} ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/main.cpp
+        scripts/unix/launcher.sh
+        ARGS ${CODE_INLINER} ${INLINER_PARAMS} ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/main.cpp
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 if(@custom_checker@)

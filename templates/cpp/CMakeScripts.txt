@@ -16,6 +16,7 @@ endif()
 # problems
 
 set(PROBLEM_DIR @problem_dir@)
+set(problem_id @problem_id@)
 set(time_limit @time_limit@)
 set(memory_limit @memory_limit@)
 set(input_file_name @input_file_name@)
@@ -26,7 +27,7 @@ if(@test_type_changed@)
 endif()
 
 if(@time_limit_changed@ OR @memory_limit_changed@)
-    configure_file(${TEMPLATES_DIR}/limits.cpp ${PROBLEM_DIR}/limits.cpp)
+    configure_file(${TEMPLATES_DIR}/problem_limits.cpp ${PROBLEM_DIR}/problem_limits.cpp)
 endif()
 
 if(@input_file_name_changed@ OR @output_file_name_changed@)
