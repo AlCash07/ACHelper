@@ -77,6 +77,7 @@ file(MAKE_DIRECTORY Project/caide)
 list(APPEND INLINER_PARAMS -l 1 -d Project/caide -o submission.cpp)
 
 # target to view the submission code and validate that it actually compiles :)
+file(WRITE submission.cpp)
 add_executable(submission submission.cpp)
 source_group("" FILES submission.cpp)
 
