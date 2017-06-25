@@ -111,6 +111,6 @@ if(@custom_checker@)
     # custom checker target
     set(CHECKER_FILE ${PROBLEM_DIR}/checker.cpp)
     source_group("" FILES ${CHECKER_FILE})
-    target_include_directories(@problem_id@Checker PRIVATE ${CHECKERS_DIR})
     add_executable(@problem_id@Checker ${CHECKER_FILE})
+    target_include_directories(@problem_id@Checker PRIVATE ${CHECKERS_DIR})
 endif()
