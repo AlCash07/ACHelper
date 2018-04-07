@@ -1,10 +1,16 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.9)
 
 # custom directories
 set(INCLUDES_DIR templates)
 set(TEMPLATES_DIR templates/cpp)
 set(CHECKERS_DIR templates)
 set(CODE_INLINER ~/caide-cpp-inliner/Build/cmd/Release/cmd)
+
+# root directory for binaries
+set(BINARY_DIR .)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_DIR})
 
 # IDE project name
 project("ACHelperProject")
@@ -29,6 +35,7 @@ if(APPLE)
         set(CMAKE_XCODE_ATTRIBUTE_CXX_LANGUAGE_STANDARD "с++11")
         set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
         set(CMAKE_XCODE_ATTRIBUTE_GCC_WARN_UNUSED_VARIABLE "NO")
+        set(CMAKE_XCODE_GENERATE_SCHEME TRUE)
     endif()
 elseif(UNIX)
     # multithreading support on unix for GCJ and FHC
@@ -65,9 +72,9 @@ string(REGEX REPLACE "^.*#include <...> search starts here:.|End of search list.
 string(REGEX REPLACE "[^|\n][^\n]*\\(framework directory\\)" "" GCC_OUTPUT ${GCC_OUTPUT})
 string(REGEX REPLACE "^ |\n |\n" ";" SYSTEM_DIRS ${GCC_OUTPUT})
 foreach(SYSTEM_DIR ${SYSTEM_DIRS})
-  if(NOT ${SYSTEM_DIR} STREQUAL "")
-    list(APPEND INLINER_PARAMS -isystem ${SYSTEM_DIR})
-  endif()
+    if(NOT ${SYSTEM_DIR} STREQUAL "")
+        list(APPEND INLINER_PARAMS -isystem ${SYSTEM_DIR})
+    endif()
 endforeach()
 
 # set other common inliner params
@@ -92,6 +99,11 @@ source_group("" FILES ${PROBLEM_FILES})
 if(@interactive@)
     # run problem solution with console I/O
     add_executable(@problem_id@ ${PROBLEM_FILES} ${PROBLEM_DIR}/main.cpp)
+    if(@platform_id@ STREQUAL new-gcj)
+        # automatically run interactor provided by Google
+        add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
+                python ${PROBLEM_DIR}/testing_tool.py $<TARGET_FILE_DIR:@problem_id@>/@problem_id@)
+    endif()
 else()
     add_executable(@problem_id@ ${PROBLEM_FILES})
     # link problem solution with tester library that will run it on all the tests

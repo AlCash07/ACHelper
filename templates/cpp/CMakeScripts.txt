@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.9)
 
 # custom directories
 set(BINARY_DIR Project/RelWithDebInfo)
@@ -21,8 +21,9 @@ set(time_limit @time_limit@)
 set(memory_limit @memory_limit@)
 set(input_file_name @input_file_name@)
 set(output_file_name @output_file_name@)
+set(interactive @interactive@)
 
-if(@test_type_changed@)
+if(@test_type_changed@ OR @interactive_changed@)
     configure_file(${TEMPLATES_DIR}/source_@test_type@.cpp ${PROBLEM_DIR}/source.cpp)
 endif()
 
@@ -30,7 +31,7 @@ if(@time_limit_changed@ OR @memory_limit_changed@)
     configure_file(${TEMPLATES_DIR}/problem_limits.cpp ${PROBLEM_DIR}/problem_limits.cpp)
 endif()
 
-if(@input_file_name_changed@ OR @output_file_name_changed@)
+if(@input_file_name_changed@ OR @output_file_name_changed@ OR @interactive_changed@)
     configure_file(${TEMPLATES_DIR}/main.cpp ${PROBLEM_DIR}/main.cpp)
 endif()
 

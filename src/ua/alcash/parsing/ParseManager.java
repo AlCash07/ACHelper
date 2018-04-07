@@ -32,6 +32,7 @@ public class ParseManager {
         platforms.put("hackerearth", new HackerEarthParser());
         platforms.put("hackerrank", new HackerRankParser());
         platforms.put("kattis", new KattisParser());
+        platforms.put("new-gcj", new NewGCJParser());
         platforms.put("rcc", new RCCParser());
         platforms.put("timus", new TimusParser());
         platforms.put("usaco", new UsacoParser());
@@ -48,6 +49,7 @@ public class ParseManager {
         platformUrls.put("hackerearth", "hackerearth.com");
         platformUrls.put("hackerrank", "hackerrank.com");
         platformUrls.put("kattis", "open.kattis.com");
+        platformUrls.put("new-gcj", "codejam.withgoogle.com");
         platformUrls.put("rcc", "russiancodecup.ru");
         platformUrls.put("timus", "acm.timus.ru");
         platformUrls.put("usaco", "usaco.org");
@@ -59,6 +61,7 @@ public class ParseManager {
         contestUrls.put("codeforces", "codeforces.com/contest/");
         contestUrls.put("gcj", "code.google.com/codejam/contest/");
         contestUrls.put("kattis", "open.kattis.com/contests/");
+        contestUrls.put("new-gcj", "codejam.withgoogle.com/");
         contestUrls.put("rcc", "/championship/round/");
         contestUrls.put("timus", "acm.timus.ru/problemset.aspx?space=");
         PLATFORM_ID_TO_CONTEST_URL = Collections.unmodifiableMap(contestUrls);
