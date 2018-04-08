@@ -15,9 +15,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_DIR})
 # IDE project name
 project("ACHelperProject")
 
-# remove ZERO_CHECK target
-set(CMAKE_SUPPRESS_REGENERATION true)
-
 # C++11 standard
 set(CMAKE_CXX_STANDARD 11)
 
@@ -27,18 +24,24 @@ add_definitions(-DAlCash)
 # increase stack size
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-stack_size,1000000000")
 
+# create only the necessary configuration types
+set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo)
+
+# remove ZERO_CHECK target
+set(CMAKE_SUPPRESS_REGENERATION true)
+
 # platform specific stuff
 if(APPLE)
     if(NOT IOS)
         # AppCode support
         set(CMAKE_OSX_SYSROOT macosx)
-        set(CMAKE_XCODE_ATTRIBUTE_CXX_LANGUAGE_STANDARD "с++11")
+        set(CMAKE_XCODE_ATTRIBUTE_CXX_LANGUAGE_STANDARD "с++${CMAKE_CXX_STANDARD}")
         set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
         set(CMAKE_XCODE_ATTRIBUTE_GCC_WARN_UNUSED_VARIABLE "NO")
         set(CMAKE_XCODE_GENERATE_SCHEME TRUE)
     endif()
 elseif(UNIX)
-    # multithreading support on unix for GCJ and FHC
+    # multithreading support on unix for FHC
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
 endif()
@@ -78,7 +81,8 @@ foreach(SYSTEM_DIR ${SYSTEM_DIRS})
 endforeach()
 
 # set other common inliner params
-list(APPEND INLINER_PARAMS -std=c++11 -nostdinc -fparse-all-comments -DONLINE_JUDGE)
+list(APPEND INLINER_PARAMS "-std=c++${CMAKE_CXX_STANDARD}")
+list(APPEND INLINER_PARAMS -nostdinc -fparse-all-comments -DONLINE_JUDGE)
 list(APPEND INLINER_PARAMS -I ${INCLUDES_DIR} -I ${TEMPLATES_DIR} --)
 file(MAKE_DIRECTORY Project/caide)
 list(APPEND INLINER_PARAMS -l 1 -d Project/caide -o submission.cpp)
@@ -94,11 +98,10 @@ set(PROBLEM_DIR @problem_dir@)
 # make test files show up in IDE along with source file
 file(GLOB PROBLEM_FILES ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/problem_limits.cpp
         ${PROBLEM_DIR}/*.in ${PROBLEM_DIR}/*.out ${PROBLEM_DIR}/*.ans)
-source_group("" FILES ${PROBLEM_FILES})
-
 if(@interactive@)
     # run problem solution with console I/O
-    add_executable(@problem_id@ ${PROBLEM_FILES} ${PROBLEM_DIR}/main.cpp)
+    set(PROBLEM_FILES ${PROBLEM_FILES} ${PROBLEM_DIR}/main.cpp)
+    add_executable(@problem_id@ ${PROBLEM_FILES})
     if(@platform_id@ STREQUAL new-gcj)
         # automatically run interactor provided by Google
         add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
@@ -112,6 +115,7 @@ else()
     add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND ${CMAKE_COMMAND} -E
             echo ${PROBLEM_DIR}/tests > $<TARGET_FILE_DIR:@problem_id@>/@problem_id@Path)
 endif()
+source_group("" FILES ${PROBLEM_FILES})
 
 # run code inliner in the background after the build
 add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
