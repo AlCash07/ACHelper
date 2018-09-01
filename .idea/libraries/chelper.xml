@@ -4,6 +4,8 @@
       <root url="jar://$PROJECT_DIR$/lib/chelper.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://$LIB_SOURCES$/idea-chelper/src" />
+    </SOURCES>
   </library>
 </component>

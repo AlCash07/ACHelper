@@ -10,5 +10,7 @@
     <orderEntry type="library" name="chelper" level="project" />
     <orderEntry type="library" name="commons-lang-2.6" level="project" />
     <orderEntry type="library" name="openapi-7.0.3" level="project" />
+    <orderEntry type="library" name="jackson-core-2.7.4" level="project" />
+    <orderEntry type="library" name="jackson-annotations-2.7.0" level="project" />
   </component>
 </module>
