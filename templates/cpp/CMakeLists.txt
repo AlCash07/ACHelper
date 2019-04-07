@@ -4,19 +4,14 @@ cmake_minimum_required(VERSION 3.9)
 set(INCLUDES_DIR templates)
 set(TEMPLATES_DIR templates/cpp)
 set(CHECKERS_DIR templates)
-set(CODE_INLINER ~/caide-cpp-inliner/Build/cmd/Release/cmd)
-
-# root directory for binaries
-set(BINARY_DIR .)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BINARY_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_DIR})
+set(CODE_INLINER ../caide-cpp-inliner/build/cmd/cmd)
 
 # IDE project name
-project("ACHelperProject")
+get_filename_component(PROJECT_NAME ${CMAKE_SOURCE_DIR} NAME)
+project(${PROJECT_NAME})
 
-# C++11 standard
-set(CMAKE_CXX_STANDARD 11)
+# C++ standard
+set(CMAKE_CXX_STANDARD 17)
 
 # custom preprocessor definitions to distinguish local and online judge environment
 add_definitions(-DAlCash)
@@ -51,7 +46,7 @@ include_directories(${INCLUDES_DIR} ${TEMPLATES_DIR})
 
 # make includes show up in IDE as a separate group
 # preserving directory structure
-file(GLOB_RECURSE HEADER_FILES ${INCLUDES_DIR}/*.h)
+file(GLOB_RECURSE HEADER_FILES ${INCLUDES_DIR}/*.h ${INCLUDES_DIR}/*.hpp)
 get_filename_component(FULL_INCLUDES_PATH ${INCLUDES_DIR} ABSOLUTE)
 foreach(FILE_NAME ${HEADER_FILES})
     get_filename_component(ABSOLUTE_FILE_NAME ${FILE_NAME} ABSOLUTE)
@@ -81,11 +76,12 @@ foreach(SYSTEM_DIR ${SYSTEM_DIRS})
 endforeach()
 
 # set other common inliner params
-list(APPEND INLINER_PARAMS "-std=c++${CMAKE_CXX_STANDARD}")
+string(REPLACE 17 1z CAIDE_CXX_STANDARD ${CMAKE_CXX_STANDARD})
+list(APPEND INLINER_PARAMS "-std=c++${CAIDE_CXX_STANDARD}")
 list(APPEND INLINER_PARAMS -nostdinc -fparse-all-comments -DONLINE_JUDGE)
 list(APPEND INLINER_PARAMS -I ${INCLUDES_DIR} -I ${TEMPLATES_DIR} --)
-file(MAKE_DIRECTORY Project/caide)
-list(APPEND INLINER_PARAMS -l 1 -d Project/caide -o submission.cpp)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/caide)
+list(APPEND INLINER_PARAMS -l 1 -d ${CMAKE_BINARY_DIR}/caide -o submission.cpp)
 
 # target to view the submission code and validate that it actually compiles :)
 file(WRITE submission.cpp)
@@ -97,7 +93,7 @@ source_group("" FILES submission.cpp)
 set(PROBLEM_DIR @problem_dir@)
 # make test files show up in IDE along with source file
 file(GLOB PROBLEM_FILES ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/problem_limits.cpp
-        ${PROBLEM_DIR}/*.in ${PROBLEM_DIR}/*.out ${PROBLEM_DIR}/*.ans)
+        ${PROBLEM_DIR}/*.txt ${PROBLEM_DIR}/*.in ${PROBLEM_DIR}/*.out ${PROBLEM_DIR}/*.ans)
 if(@interactive@)
     # run problem solution with console I/O
     set(PROBLEM_FILES ${PROBLEM_FILES} ${PROBLEM_DIR}/main.cpp)
@@ -119,9 +115,9 @@ source_group("" FILES ${PROBLEM_FILES})
 
 # run code inliner in the background after the build
 add_custom_command(TARGET @problem_id@ POST_BUILD COMMAND
-        scripts/unix/launcher.sh
+        scripts/launcher.sh
         ARGS ${CODE_INLINER} ${INLINER_PARAMS} ${PROBLEM_DIR}/source.cpp ${PROBLEM_DIR}/main.cpp
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 if(@custom_checker@)
     # custom checker target

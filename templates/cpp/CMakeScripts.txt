@@ -1,15 +1,14 @@
 cmake_minimum_required(VERSION 3.9)
 
 # custom directories
-set(BINARY_DIR Project/RelWithDebInfo)
 set(TEMPLATES_DIR templates/cpp)
 set(CHECKERS_DIR templates)
 
 # default checker is compiled in case it wasn't already
-if(NOT EXISTS ${BINARY_DIR}/default_checker)
-    file(MAKE_DIRECTORY ${BINARY_DIR})
+if(NOT EXISTS ${RELEASE_DIR}/default_checker)
+    file(MAKE_DIRECTORY ${RELEASE_DIR})
     execute_process(COMMAND g++ @default checker compiler options@
-            -o ${BINARY_DIR}/default_checker
+            -o ${RELEASE_DIR}/default_checker
             ${CHECKERS_DIR}/default_checker.cpp)
 endif()
 
@@ -44,11 +43,11 @@ else()
     if(@custom_checker_changed@ OR @checker_compiler_options_changed@)
         if("@checker_compiler_options@" STREQUAL "@default checker compiler options@")
             # if the checker has default compiler options, create a symlink
-            execute_process(COMMAND ln -sf default_checker ${BINARY_DIR}/@problem_id@Checker)
+            execute_process(COMMAND ln -sf default_checker ${RELEASE_DIR}/@problem_id@Checker)
         else()
             # otherwise, compile the checker
             execute_process(COMMAND g++ @checker_compiler_options@
-                    -o ${BINARY_DIR}/@problem_id@Checker
+                    -o ${RELEASE_DIR}/@problem_id@Checker
                     ${CHECKERS_DIR}/default_checker.cpp)
         endif()
     endif()

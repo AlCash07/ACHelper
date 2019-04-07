@@ -49,7 +49,7 @@
 
     <entry key="problems delimiter"># problems</entry>
     <entry key="generate files template">templates/cpp/CMakeScripts.txt</entry>
-    <entry key="generate files command">cmake -P CMakeScripts.txt</entry>
+    <entry key="generate files command">/usr/local/bin/cmake -DRELEASE_DIR=Project/RelWithDebInfo -P CMakeScripts.txt</entry>
     <entry key="generate project template">templates/cpp/CMakeLists.txt</entry>
-    <entry key="generate project command">scripts/unix/project.sh</entry>
+    <entry key="generate project command">/usr/local/bin/cmake -B Project -G Xcode</entry>
 </properties>
